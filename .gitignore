@@ -1,0 +1,40 @@
+
+# CHOQUE NO SISTEMA REMAKE
+# Alencar Game Studio
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+.cxx/
+.externalNativeBuild/
+
+# Arquivos de assinatura
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+key.properties
+
+# Segredos e configuracoes locais
+.env
+.env.*
+!.env.example
+secrets.properties
+
+# Arquivos temporarios
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# APK e AAB gerados
+*.apk
+*.aab
