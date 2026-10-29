@@ -16,7 +16,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Baixar codigo do repositorio
+      - name: Baixar codigo
         uses: actions/checkout@v4
 
       - name: Configurar Java 17
@@ -30,11 +30,11 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar Android SDK 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Verificar Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms"
+          ls "$ANDROID_HOME/build-tools"
 
       - name: Preparar arquivos do jogo
         run: |
