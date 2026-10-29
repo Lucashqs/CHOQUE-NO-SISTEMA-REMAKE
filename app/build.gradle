@@ -15,13 +15,34 @@ android {
 
         versionCode 1
         versionName "1.0.0"
+    }
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv("KEYSTORE_FILE")
+            def storePass = System.getenv("KEYSTORE_PASSWORD")
+            def aliasName = System.getenv("KEY_ALIAS")
+            def keyPass = System.getenv("KEY_PASSWORD")
+
+            if (keystorePath && storePass && aliasName && keyPass) {
+                storeFile file(keystorePath)
+                storePassword storePass
+                keyAlias aliasName
+                keyPassword keyPass
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            debuggable true
+        }
+
         release {
             minifyEnabled false
+            debuggable false
+
+            signingConfig signingConfigs.release
         }
     }
 
