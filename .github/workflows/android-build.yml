@@ -51,7 +51,7 @@ jobs:
           test -f app/src/main/assets/teste_mundo1.html
 
       - name: Compilar APK Debug
-        run: gradle --no-daemon :app:assembleDebug
+        run: gradle --no-daemon :app:assembleDebug --stacktrace --info
 
       - name: Publicar APK
         uses: actions/upload-artifact@v4
