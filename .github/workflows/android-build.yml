@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Compilar APK
+    name: Compilar APK e AAB
     runs-on: ubuntu-latest
 
     permissions:
@@ -30,12 +30,6 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Verificar Android SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME/platforms"
-          ls "$ANDROID_HOME/build-tools"
-
       - name: Preparar arquivos do jogo
         run: |
           mkdir -p app/src/main/assets
@@ -51,12 +45,52 @@ jobs:
           test -f app/src/main/assets/teste_mundo1.html
 
       - name: Compilar APK Debug
-        run: gradle --no-daemon :app:assembleDebug --stacktrace --info
+        run: gradle --no-daemon :app:assembleDebug
 
-      - name: Publicar APK
+      - name: Restaurar keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "KEYSTORE_BASE64 nao configurado"
+            exit 1
+          fi
+
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/remake-release.jks"
+
+          test -s "$RUNNER_TEMP/remake-release.jks"
+
+      - name: Compilar APK e AAB Release
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/remake-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          gradle --no-daemon \
+            :app:assembleRelease \
+            :app:bundleRelease
+
+      - name: Publicar APK Debug
         uses: actions/upload-artifact@v4
         with:
-          name: Choque-no-Sistema-Remake-Debug
+          name: Choque-Remake-APK-Debug
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publicar APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: Choque-Remake-APK-Release
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publicar AAB Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: Choque-Remake-AAB-Release
+          path: app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
           retention-days: 14
