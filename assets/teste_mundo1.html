@@ -1,0 +1,1198 @@
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0,
+                 maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>Choque no Sistema REMAKE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background: #080e1b;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        /* ÁREA DO JOGO */
+
+        
+        /* ÁREA RESPONSIVA DA FASE 1 */
+
+        .jogo {
+            position: relative;
+            container-type: inline-size;
+
+            width: min(100vw, 177.7778vh);
+            width: min(100vw, 177.7778dvh);
+
+            max-width: none;
+            aspect-ratio: 16 / 9;
+
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #111;
+            image-rendering: pixelated;
+            touch-action: none;
+        }
+
+        /* VIDA DO HERÓI */
+
+        
+        /* HUD RESPONSIVA DO HERÓI */
+
+        .hud {
+            position: absolute;
+            top: 2%;
+            left: 2%;
+
+            width: clamp(85px, 20cqw, 200px);
+
+            text-align: left;
+            background: rgba(0, 0, 0, 0.55);
+            border-radius: 8px;
+
+            padding: clamp(4px, 0.8cqw, 10px);
+            font-size: clamp(9px, 1.5cqw, 15px);
+
+            pointer-events: none;
+            z-index: 6;
+        }
+
+
+        .barra {
+            height: 12px;
+            background: #333;
+            border: 1px solid white;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        #vidaPreenchimento {
+            width: 100%;
+            height: 100%;
+            background: #22c55e;
+        }
+
+        /* CONTROLES SOBRE O ASFALTO */
+
+        .controles {
+            position: absolute;
+            bottom: 5%;
+            left: 0;
+            width: 100%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 0 2%;
+            margin: 0;
+            gap: 6px;
+
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .grupo {
+            display: flex;
+            align-items: center;
+            gap: clamp(3px, 0.8vw, 8px);
+            min-width: 0;
+        }
+
+        .controles button {
+            width: clamp(24px, 6.5cqw, 64px);
+            height: clamp(24px, 6.5cqw, 60px);
+
+            min-width: 0;
+            padding: 0 3px;
+
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+
+            background: rgba(24, 60, 105, 0.85);
+            color: white;
+
+            font-size: clamp(9px, 1.65vw, 18px);
+            font-weight: bold;
+
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            pointer-events: auto;
+        }
+
+        .controles button:active {
+            background: #168bdf;
+            transform: scale(0.95);
+        }
+
+        
+        /* ESCONDER BOTÕES DURANTE AS CUTSCENES */
+
+        .controles.ocultos {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+
+        #pular {
+            background: rgba(21, 94, 117, 0.9);
+        }
+
+        #ataque1 {
+            background: rgba(154, 52, 18, 0.9);
+            border-color: #fb923c;
+        }
+
+        #ataque2 {
+            background: rgba(107, 33, 168, 0.9);
+            border-color: #c084fc;
+        }
+
+        /* OCULTAR INFORMAÇÕES DE TESTE */
+
+        #posicao,
+        .ajuda-teclado {
+            display: none;
+        }
+
+        /* TELA DE GAME OVER */
+
+        #gameOver {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+
+            background: rgba(4, 8, 20, 0.90);
+
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            text-align: center;
+        }
+
+        #gameOver.visivel {
+            display: flex;
+        }
+
+        #gameOver h1 {
+            margin: 0;
+            color: #ef4444;
+            font-size: clamp(30px, 7vw, 70px);
+            text-shadow: 0 0 25px #dc2626;
+            letter-spacing: 4px;
+        }
+
+        #gameOver p {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: clamp(12px, 2.5vw, 20px);
+        }
+
+        #reiniciar {
+            width: auto;
+            min-width: 150px;
+            min-height: 45px;
+            padding: 10px 20px;
+
+            background: #15803d;
+            border: 2px solid #4ade80;
+            border-radius: 12px;
+
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #reiniciar:hover {
+            background: #16a34a;
+        }
+
+        /* ADAPTAÇÃO PARA TELAS PEQUENAS */
+
+        @media (max-width: 650px) {
+            .controles {
+                padding: 0 1.5%;
+                gap: 4px;
+            }
+
+            .grupo {
+                gap: 3px;
+            }
+
+            .hud {
+                padding: 5px;
+            }
+
+            .barra {
+                height: 8px;
+            }
+
+            #reiniciar {
+                min-width: 140px;
+                font-size: 12px;
+            }
+        }
+
+        /* CELULARES EM MODO HORIZONTAL */
+
+        @media (orientation: landscape)
+               and (max-height: 500px) {
+            .jogo {
+                max-width: min(960px, 177.78vh);
+            }
+
+            .controles {
+                bottom: 4%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="jogo">
+
+        <!-- CENÁRIO DO JOGO -->
+
+        <canvas
+            id="canvas"
+            width="960"
+            height="540"
+        ></canvas>
+
+        <!-- VIDA DO HERÓI -->
+
+        <div class="hud">
+            <strong>HERÓI</strong>
+
+            <div class="barra">
+                <div id="vidaPreenchimento"></div>
+            </div>
+
+            <span id="vidaTexto">
+                100 / 100 HP
+            </span>
+        </div>
+
+        <!-- GAME OVER -->
+
+        <div id="gameOver">
+            <h1>GAME OVER</h1>
+
+            <p>O herói foi derrotado!</p>
+
+            <button id="reiniciar">
+                TENTAR NOVAMENTE
+            </button>
+        </div>
+
+        <!-- CONTROLES SOBRE O CENÁRIO -->
+
+        <div class="controles">
+
+            <!-- CONTROLES DE MOVIMENTO -->
+
+            <div class="grupo">
+                <button id="esquerda">◀</button>
+                <button id="direita">▶</button>
+                
+                
+            </div>
+
+            <!-- CONTROLES DE COMBATE -->
+
+            <div class="grupo">
+                <button id="pular">PULO</button>
+                <button id="ataque1">ATQ 1</button>
+                <button id="ataque2">ATQ 2</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INFORMAÇÕES DE DIAGNÓSTICO -->
+
+    <p class="ajuda-teclado">
+        A/D: mover | W/S: escadas |
+        Espaço: pular | J/K: atacar
+    </p>
+
+    <p id="posicao"></p>
+
+    <!-- MANTER TODOS OS SCRIPTS ORIGINAIS ABAIXO -->
+
+  <script src="js/mundo1.js"></script>
+  <script src="js/jogador.js"></script>
+  <script src="js/animacoes.js"></script>
+  <script src="js/combate.js"></script>
+  <script src="js/inimigos.js"></script>
+  <script src="js/chefao_raio_de_fogo.js"></script>
+  <script src="js/cutscenes.js"></script>
+  <script src="js/projeteis.js"></script>
+
+  <script>
+    const canvas =
+      document.getElementById("canvas");
+
+    const ctx = canvas.getContext("2d");
+
+    const teclas = {};
+
+    let cameraX = 0;
+    let cameraY = 560;
+    let ultimoFrame = performance.now();
+
+    let fireballDisparada = false;
+    
+    let ultimoGolpeNoChefao = null;
+
+    let ultimoGolpeDiagnosticado = null;
+
+
+    // Estado da partida.
+    let gameOver = false;
+    let tempoMorte = 0;
+
+    const DURACAO_MORTE = 1200;
+
+    const vidaHeroi = {
+      valor: 100,
+      maxima: 100,
+      tempoDano: 0
+    };
+
+    const telaGameOver =
+      document.getElementById("gameOver");
+
+    const botaoReiniciar =
+      document.getElementById("reiniciar");
+
+    const preenchimento =
+      document.getElementById("vidaPreenchimento");
+
+    const textoVida =
+      document.getElementById("vidaTexto");
+
+    const textoPosicao =
+      document.getElementById("posicao");
+
+    // Inicializacao.
+    AnimacoesHeroi.iniciar();
+    Inimigos.iniciar();
+    // INICIAR CUTSCENE DO MUNDO!
+    Cutscenes.iniciar("intro");
+    // Preparar a entrada do Raio de Fogo
+    Cutscenes.iniciarEntradaRaio();
+
+
+    const botoes = {
+      esquerda: "ArrowLeft",
+      direita: "ArrowRight",
+      subir: "ArrowUp",
+      descer: "ArrowDown",
+      pular: "Space"
+    };
+
+    // Controles virtuais.
+    document
+      .querySelectorAll(".controles button")
+      .forEach(botao => {
+
+        const id = botao.id;
+
+        if (
+          id === "ataque1" ||
+          id === "ataque2"
+        ) {
+          botao.addEventListener(
+            "pointerdown",
+            e => {
+              e.preventDefault();
+
+              if (
+                vidaHeroi.valor <= 0 ||
+                gameOver
+              ) {
+                return;
+              }
+
+              AnimacoesHeroi.iniciarAtaque(
+                id === "ataque1"
+                  ? "attack"
+                  : "attack_02"
+              );
+            }
+          );
+
+          return;
+        }
+
+        const tecla = botoes[id];
+
+        botao.addEventListener(
+          "pointerdown",
+          e => {
+            e.preventDefault();
+
+            if (
+              vidaHeroi.valor <= 0 ||
+              gameOver
+            ) {
+              return;
+            }
+
+            teclas[tecla] = true;
+  
+            botao.setPointerCapture(
+              e.pointerId
+            );
+          }
+        );
+
+        const soltar = () => {
+          teclas[tecla] = false;
+        };
+
+        botao.addEventListener(
+          "pointerup",
+          soltar
+        );
+
+        botao.addEventListener(
+          "pointercancel",
+          soltar
+        );
+
+        botao.addEventListener(
+          "lostpointercapture",
+          soltar
+        );
+      });
+
+    // Teclado.
+    window.addEventListener(
+      "keydown",
+      e => {
+
+        if ([
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          "ArrowDown",
+          "Space"
+        ].includes(e.code)) {
+          e.preventDefault();
+        }
+
+        if (
+          vidaHeroi.valor <= 0 ||
+          gameOver
+        ) {
+          return;
+        }
+
+        teclas[e.code] = true;
+
+        if (e.key.length === 1) {
+          teclas[e.key.toLowerCase()] = true;
+        }
+
+        if (
+          !e.repeat &&
+          e.code === "KeyJ"
+        ) {
+          AnimacoesHeroi.iniciarAtaque(
+            "attack"
+          );
+        }
+
+        if (
+          !e.repeat &&
+          e.code === "KeyK"
+        ) {
+          AnimacoesHeroi.iniciarAtaque(
+            "attack_02"
+          );
+        }
+      }
+    );
+
+    window.addEventListener(
+      "keyup",
+      e => {
+
+        teclas[e.code] = false;
+
+        if (e.key.length === 1) {
+          teclas[e.key.toLowerCase()] = false;
+        }
+      }
+    );
+
+    window.addEventListener(
+      "blur",
+      () => {
+        Object.keys(teclas).forEach(
+          k => teclas[k] = false
+        );
+      }
+    );
+
+        // CONTROLE DOS DIÁLOGOS
+    canvas.addEventListener("pointerdown", (evento) => {
+
+        console.log("Canvas recebeu clique!");
+
+        if (
+            Cutscenes.estado === "dialogo_intro" ||
+            Cutscenes.estado === "dialogo_saqueador" ||
+            Cutscenes.estado === "dialogo_retorno_raio" ||
+            Cutscenes.estado === "dialogo_derrota_raio"
+        ) {
+            console.log(
+                "Avançando diálogo:",
+                Cutscenes.estado,
+                Cutscenes.dialogoAtual
+            );
+
+            Cutscenes.avancarDialogo();
+        }
+
+    });
+
+
+
+    // Reiniciar partida.
+    botaoReiniciar.addEventListener(
+      "click",
+      () => {
+        window.location.reload();
+      }
+    );
+
+    function mostrarGameOver() {
+      if (gameOver) return;
+
+      gameOver = true;
+
+      telaGameOver.classList.add(
+        "visivel"
+      );
+
+      Object.keys(teclas).forEach(
+        k => teclas[k] = false
+      );
+    }
+
+    
+    function desenharVidaChefao() {
+
+        if (
+            Cutscenes.ativa ||
+            !RaioDeFogo.ativo ||
+            RaioDeFogo.derrotado
+        ) {
+            return;
+        }
+
+        const largura = 500;
+        const altura = 20;
+        const x = (canvas.width - largura) / 2;
+        const y = 25;
+
+        const percentual = Math.max(
+            0,
+            Math.min(1, RaioDeFogo.vida / RaioDeFogo.vidaMaxima)
+        );
+
+        ctx.save();
+
+        ctx.textAlign = "center";
+        ctx.font = "bold 22px Arial";
+        ctx.fillStyle = "#ff9a3c";
+        ctx.fillText("RAIO DE FOGO", canvas.width / 2, y - 5);
+
+        // Fundo da barra
+        ctx.fillStyle = "#252525";
+        ctx.fillRect(x, y + 10, largura, altura);
+
+        // Vida restante
+        ctx.fillStyle = "#dc2626";
+        ctx.fillRect(
+            x,
+            y + 10,
+            largura * percentual,
+            altura
+        );
+
+        // Borda
+        ctx.strokeStyle = "#ff9a3c";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y + 10, largura, altura);
+
+        // Quantidade de vida
+        ctx.font = "bold 14px Arial";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(
+            RaioDeFogo.vida + " / " + RaioDeFogo.vidaMaxima + " HP",
+            canvas.width / 2,
+            y + 25
+        );
+
+        ctx.restore();
+}
+
+
+    function atualizarHUD() {
+      const percentual =
+        (vidaHeroi.valor /
+         vidaHeroi.maxima) * 100;
+
+      preenchimento.style.width =
+        percentual + "%";
+
+      preenchimento.style.background =
+        percentual > 50
+          ? "#22c55e"
+          : percentual > 25
+            ? "#f59e0b"
+            : "#ef4444";
+
+      textoVida.textContent =
+        vidaHeroi.valor +
+        " / " +
+        vidaHeroi.maxima +
+        " HP";
+
+      textoPosicao.textContent =
+        "X: " + Math.round(Jogador.x) +
+        " | Y: " + Math.round(Jogador.y) +
+        " | NPCs vivos: " +
+        Inimigos.contarVivos() +
+        (
+          AnimacoesHeroi.tipoAtaque === "attack" &&
+          AnimacoesHeroi.comboEtapa > 0
+            ? " | COMBO " + AnimacoesHeroi.comboEtapa + "/3"
+            : AnimacoesHeroi.comboTempo > 0 &&
+              AnimacoesHeroi.comboEtapa > 0
+              ? " | COMBO " + AnimacoesHeroi.comboEtapa + "/3 — J para continuar"
+              : ""
+        ) +
+        (
+          vidaHeroi.valor <= 0
+            ? " | HERÓI DERROTADO"
+            : ""
+        );
+    }
+
+    function desenharSocoEletrico() {
+      const etapa = Math.max(1, Math.min(3, AnimacoesHeroi.comboEtapa || 1));
+      const sentido = AnimacoesHeroi.direcao === -1 ? -1 : 1;
+      const x = Jogador.x + Jogador.largura / 2 + sentido * 48 - cameraX;
+      const y = Jogador.y + Jogador.altura - 110 + 14 + 110 * 0.38 - cameraY;
+      const raio = etapa === 3 ? 29 : etapa === 2 ? 24 : 20;
+      const cor = etapa === 3 ? "#c084fc" : etapa === 2 ? "#93c5fd" : "#7dd3fc";
+      const brilhoCor = etapa === 3
+        ? "rgba(168,85,247,0.7)"
+        : "rgba(56,189,248,0.7)";
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const brilho = ctx.createRadialGradient(x, y, 0, x, y, raio);
+      brilho.addColorStop(0, "rgba(255,255,255,0.9)");
+      brilho.addColorStop(0.35, brilhoCor);
+      brilho.addColorStop(1, "rgba(56,189,248,0)");
+      ctx.fillStyle = brilho;
+      ctx.beginPath();
+      ctx.arc(x, y, raio, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = cor;
+      ctx.lineWidth = etapa === 3 ? 3 : 2;
+      const quantidade = etapa === 3 ? 11 : etapa === 2 ? 8 : 5;
+      for (let i = 0; i < quantidade; i++) {
+        const a = performance.now() / 95 + i * Math.PI * 2 / quantidade;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8);
+        ctx.lineTo(x + Math.cos(a) * (raio - 4), y + Math.sin(a) * (raio - 4));
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function atualizar() {
+
+      
+      // OCULTAR CONTROLES DURANTE AS CUTSCENES
+      const controlesTela = document.querySelector(".controles");
+
+      if (Cutscenes.ativa) {
+          controlesTela.classList.add("ocultos");
+      } else {
+          controlesTela.classList.remove("ocultos");
+      }
+
+
+      const agora = performance.now();
+
+      const dt = Math.min(
+        agora - ultimoFrame,
+        50
+      );
+
+      ultimoFrame = agora;
+
+      if (
+        Cutscenes.ativa && Cutscenes.estado === "intro"
+      ){
+        Cutscenes.atualizarEntradaRaio(dt);
+      }
+
+      if (Cutscenes.ativa && Cutscenes.estado === "fuga_raio"){
+        Cutscenes.atualizarFugaRaio(dt);
+      }
+
+      // ENTRADA CINEMATOGRÁFICA DO SAQUEADOR
+      if(Cutscenes.ativa && Cutscenes.estado === "entrada_saqueador"){
+        Cutscenes.atualizarEntradaSaqueador(dt);
+      }
+
+      
+      // ==========================================
+      // RETORNO CINEMATOGRÁFICO DO RAIO DE FOGO
+      // ==========================================
+
+      if (
+          Cutscenes.ativa &&
+          Cutscenes.estado === "retorno_raio"
+      ) {
+          Cutscenes.atualizarRetornoRaio(dt);
+      }
+
+
+      // Invencibilidade temporaria.
+      vidaHeroi.tempoDano = Math.max(
+        0,
+        vidaHeroi.tempoDano - dt
+      );
+
+      // Movimentacao somente enquanto vivo.
+      if (
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        Jogador.atualizar(
+          teclas,
+          Mundo1.obterPlataformas()
+        );
+      }
+
+      // ==========================================
+      // CAMERA COM PROGRESSAO POR CENARIO
+      // ==========================================
+
+      // Verificar se os Saqueadores da Avenida
+      // Central foram derrotados.
+      const avenidaConcluida =
+        Inimigos.avenidaCentralConcluida();
+
+      // Centro do heroi na tela.
+      const alvoX =
+        Jogador.x +
+        Jogador.largura / 2 -
+        canvas.width / 2;
+
+      const alvoY =
+        Jogador.y +
+        Jogador.altura / 2 -
+        canvas.height / 2;
+
+      // ==========================================
+      // PROGRESSÃO DA CÂMERA — MUNDO 1
+      // ==========================================
+
+      const distritoConcluido =
+        Inimigos.distritoComercialConcluido();
+
+      const industrialConcluido =
+        Inimigos.bairroIndustrialConcluido();
+
+      // Inicialmente, apenas a Avenida Central
+      let limiteRegiao = 1200;
+
+      // Liberar Distrito Comercial
+      if (avenidaConcluida) {
+        limiteRegiao = 2400;
+      }
+
+      // Liberar Bairro Industrial
+      if (avenidaConcluida && distritoConcluido) {
+        limiteRegiao = 3600;
+      }
+
+      // Liberar Usina Elétrica
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        industrialConcluido
+      ) {
+        limiteRegiao = Mundo1.largura;
+      }
+
+      // Limite máximo da câmera
+      const limiteCameraX = Math.max(
+        0,
+        limiteRegiao - canvas.width
+      );              
+
+      // Impedir que a camera avance para
+      // o Distrito Comercial antes da hora.
+      const alvoXLimitado = Math.max(
+        0,
+        Math.min(limiteCameraX, alvoX)
+      );
+
+      // Movimento suave da camera.
+      cameraX +=
+        (alvoXLimitado - cameraX) * 0.08;
+
+      cameraY +=
+        (alvoY - cameraY) * 0.08;
+
+      // Garantir que a camera respeite
+      // os limites do cenario liberado.
+      cameraX = Math.max(
+        0,
+        Math.min(limiteCameraX, cameraX)
+      );
+
+      // Limites verticais.
+      cameraY = Math.max(
+        0,
+        Math.min(
+          Mundo1.altura - canvas.height,
+          cameraY
+        )
+      );
+
+      // Cenario.
+      Mundo1.desenhar(
+        ctx,
+        cameraX,
+        cameraY
+      );
+
+      if (Mundo1.desenharEscadas) {
+        Mundo1.desenharEscadas(
+          ctx,
+          cameraX,
+          cameraY
+        );
+      }
+
+      // Animacoes continuam mesmo
+      // depois da morte do heroi.
+      AnimacoesHeroi.atualizar(
+        Jogador,
+        dt
+      );
+
+      // Cada animacao attack_02 dispara
+      // somente uma Fireball.
+      if (!AnimacoesHeroi.atacando) {
+        fireballDisparada = false;
+      }
+
+      if (
+        vidaHeroi.valor > 0 &&
+        !gameOver &&
+        AnimacoesHeroi.atacando &&
+        AnimacoesHeroi.tipoAtaque === "attack_02" &&
+        AnimacoesHeroi.frame >= 4 &&
+        !fireballDisparada
+      ) {
+        Projeteis.disparar(
+          Jogador,
+          AnimacoesHeroi.direcao
+        );
+
+        fireballDisparada = true;
+      }
+
+      // Hitbox apenas do soco.
+      const hitboxAtaque =
+        vidaHeroi.valor > 0 &&
+        !gameOver &&
+        AnimacoesHeroi.tipoAtaque === "attack"
+          ? Combate.obterHitbox(
+              Jogador,
+              AnimacoesHeroi
+            )
+          : null;
+
+      // IA do Saqueador.
+      if (!gameOver) {
+        if (!Cutscenes.ativa){
+          Inimigos.atualizar(
+            dt,
+            Jogador,
+            vidaHeroi
+          );
+        }
+
+        
+
+        if (
+          !Cutscenes.ativa &&
+          !RaioDeFogo.ativo &&
+          !RaioDeFogo.derrotado &&
+          Inimigos.podeIniciarChefao()
+        ) {
+          RaioDeFogo.iniciar();
+
+          Cutscenes.iniciar("retorno_raio");
+
+          console.log("CUTSCENE DO RETORNO DO RAIO DE FOGO INICIADA!");
+        }
+
+        // Atualizar o chefão
+        if (!Cutscenes.ativa){
+          RaioDeFogo.atualizar(
+            dt,
+            Jogador,
+            vidaHeroi
+          );
+        }
+
+
+        // Soco: hitbox curta.
+        // Fireball: colisao independente.
+        if (vidaHeroi.valor > 0) {
+          Inimigos.receberAtaque(
+            hitboxAtaque,
+            AnimacoesHeroi.idGolpe
+          );
+
+          
+          // ==========================================
+          // SOCO ELÉTRICO CONTRA O RAIO DE FOGO
+          // ==========================================
+
+          if (
+              !Cutscenes.ativa &&
+              RaioDeFogo.ativo &&
+              !RaioDeFogo.derrotado &&
+              hitboxAtaque
+          ) {
+              const colisaoChefao =
+                  hitboxAtaque.x < RaioDeFogo.x + RaioDeFogo.largura &&
+                  hitboxAtaque.x + hitboxAtaque.w > RaioDeFogo.x &&
+                  hitboxAtaque.y < RaioDeFogo.y + RaioDeFogo.altura &&
+                  hitboxAtaque.y + hitboxAtaque.h > RaioDeFogo.y;
+
+                  
+                  if (AnimacoesHeroi.idGolpe !== ultimoGolpeDiagnosticado) {
+                      ultimoGolpeDiagnosticado = AnimacoesHeroi.idGolpe;
+
+                    
+
+                    console.log(
+                        "PROPRIEDADES REAIS DA HITBOX:",
+                        JSON.stringify(hitboxAtaque)
+                    );
+
+                      
+                    console.log("DIAGNÓSTICO DO SOCO:", {
+                        golpe: AnimacoesHeroi.idGolpe,
+                        colisao: colisaoChefao,
+
+                        socoX: hitboxAtaque.x,
+                        socoY: hitboxAtaque.y,
+                        socoLargura: hitboxAtaque.largura,
+                        socoAltura: hitboxAtaque.altura,
+
+                        heroiX: Jogador.x,
+                        heroiY: Jogador.y,
+
+                        chefaoX: RaioDeFogo.x,
+                        chefaoY: RaioDeFogo.y,
+                        chefaoLargura: RaioDeFogo.largura,
+                        chefaoAltura: RaioDeFogo.altura
+                    });
+
+                  }
+
+
+              
+              if (
+                  colisaoChefao &&
+                  AnimacoesHeroi.idGolpe !== ultimoGolpeNoChefao
+              ) {
+                  RaioDeFogo.receberDano(10);
+
+                  ultimoGolpeNoChefao = AnimacoesHeroi.idGolpe;
+
+                  console.log(
+                      "SOCO ELÉTRICO ACERTOU O CHEFÃO!",
+                      "Golpe:", AnimacoesHeroi.idGolpe,
+                      "Vida restante:", RaioDeFogo.vida
+                  );
+              }
+
+          }
+
+
+          Projeteis.atualizar(
+            dt,
+            Inimigos
+          );
+        }
+      }
+
+      // Detectar derrota.
+      if (
+        vidaHeroi.valor <= 0 &&
+        !gameOver
+      ) {
+        if (!AnimacoesHeroi.morrendo) {
+          AnimacoesHeroi.iniciarMorte();
+        }
+
+        tempoMorte += dt;
+
+        if (
+          tempoMorte >= DURACAO_MORTE
+        ) {
+          mostrarGameOver();
+        }
+      }
+
+      // Desenhar inimigos.
+      if(!Cutscenes.ativa || Cutscenes.estado === "entrada_saqueador" || Cutscenes.estado === "dialogo_saqueador"){
+        Inimigos.desenhar(        
+          ctx,
+          cameraX,
+          cameraY
+        );
+      }
+      
+
+      // ==========================================
+      // DESENHAR CHEFÃO — RAIO DE FOGO
+      // ==========================================
+
+      RaioDeFogo.desenhar(
+        ctx,
+        cameraX,
+        cameraY
+      );
+
+      // Desenhar os projéteis do chefão
+      RaioDeFogo.desenharProjeteis(
+        ctx,
+        cameraX,
+        cameraY
+      );
+
+      
+      
+      desenharVidaChefao();
+
+      
+
+      // Efeito visual de invencibilidade.
+      const piscar =
+        vidaHeroi.valor > 0 &&
+        vidaHeroi.tempoDano > 0 &&
+        Math.floor(
+          vidaHeroi.tempoDano / 70
+        ) % 2 === 0;
+
+      if (!piscar) {
+        const desenhou =
+          AnimacoesHeroi.desenhar(
+            ctx,
+            Jogador,
+            cameraX,
+            cameraY
+          );
+
+        if (!desenhou) {
+          Jogador.desenhar(
+            ctx,
+            cameraX,
+            cameraY
+          );
+        }
+      }
+
+      // Hitbox de teste.
+      if (hitboxAtaque) {
+        Combate.desenharHitbox(
+          ctx,
+          hitboxAtaque,
+          cameraX,
+          cameraY
+        );
+      }
+
+
+      // Fireball na posicao real do mundo.
+      Projeteis.desenhar(
+        ctx,
+        cameraX,
+        cameraY
+      );
+
+      // Desenhar dialogo
+      Cutscenes.desenharDialogo(ctx);
+
+      atualizarHUD();
+
+      requestAnimationFrame(
+        atualizar
+      );
+    }
+
+    atualizar();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Choque no Sistema REMAKE</title>
+  <link rel="stylesheet" href="css/menu.css">
+</head>
+
+<body>
+    
+    <!-- PARTÍCULAS ELÉTRICAS DO MENU -->
+    <div class="particulas" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    </div>
+
+    
+    <!-- PAINEL DE CONFIGURAÇÕES -->
+    <section id="painelConfiguracoes" class="painel-configuracoes" hidden>
+
+    <h2>CONFIGURAÇÕES</h2>
+
+    <div class="config-opcao">
+        <label for="volumeMusica">Música</label>
+
+        <input
+        type="range"
+        id="volumeMusica"
+        min="0"
+        max="100"
+        value="70"
+        >
+    </div>
+
+    <div class="config-opcao">
+        <label for="volumeEfeitos">Efeitos sonoros</label>
+
+        <input
+        type="range"
+        id="volumeEfeitos"
+        min="0"
+        max="100"
+        value="80"
+        >
+    </div>
+
+    <button id="btnVoltarConfig">
+        VOLTAR
+    </button>
+
+    </section>
+
+    
+    <!-- MÚSICA DE FUNDO DO MENU -->
+    <audio
+    id="musicaMenu"
+    src="audio/musica_menu.mp3"
+    loop
+    preload="auto"
+    ></audio>
+
+    <!-- MENU PRINCIPAL -->
+    <main class="menu-principal">
+
+    <!-- LOGO DO JOGO -->
+    <header class="menu-topo">
+        <img
+        src="imagens/logo_remake.png"
+        alt="Choque no Sistema REMAKE"
+        class="logo-jogo"
+        >
+    </header>
+
+    <!-- BOTÕES DO MENU -->
+    <nav class="menu-botoes">
+
+        <button
+        id="btnJogar"
+        onclick="window.location.href='teste_mundo1.html'"
+        >
+        JOGAR
+        </button>
+
+        <button id="btnConfiguracoes">
+        CONFIGURAÇÕES
+        </button>
+
+        <button id="btnSair">
+        SAIR
+        </button>
+
+    </nav>
+
+    <!-- LOGO DO ESTÚDIO -->
+    <footer class="menu-rodape">
+        <img
+        src="imagens/logo_alencar.png"
+        alt="Alencar Game Studio"
+        class="logo-studio"
+        >
+    </footer>
+
+    </main>
+
+    <script src="js/menu.js"></script>
+
+</body>
+
+
+
+</html>
