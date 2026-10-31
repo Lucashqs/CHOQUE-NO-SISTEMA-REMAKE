@@ -1,0 +1,539 @@
+
+/* MENU INICIAL - CHOQUE NO SISTEMA REMAKE */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 35%,
+      #123e75 0%,
+      #071b3b 48%,
+      #020713 100%
+    );
+
+  color: white;
+  font-family: Arial, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  overflow-x: hidden;
+}
+
+/* ESTRUTURA DO MENU PRINCIPAL */
+
+.menu-principal {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 25px 20px;
+  gap: 25px;
+}
+
+/* LOGO SUPERIOR */
+
+.menu-topo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+/* LOGO SUPERIOR RESPONSIVA */
+
+.logo-jogo {
+    display: block;
+
+    width: min(65vw, 480px);
+    max-width: 100%;
+
+    max-height: 25dvh;
+    height: auto;
+
+    object-fit: contain;
+}
+
+
+/* BOTÕES CENTRALIZADOS */
+
+.menu-botoes {
+  width: min(100%, 320px);
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+
+  margin: auto 0;
+}
+
+.menu-botoes button {
+  width: 100%;
+  min-height: 54px;
+
+  background: #123c72;
+  color: white;
+
+  border: 2px solid #38bdf8;
+  border-radius: 12px;
+
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-botoes button:hover {
+  background: #1674bc;
+  box-shadow: 0 0 20px #38bdf8;
+  transform: scale(1.04);
+}
+
+.menu-botoes button:active {
+  transform: scale(0.97);
+}
+
+/* LOGO INFERIOR */
+
+.menu-rodape {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+/* LOGO INFERIOR RESPONSIVA */
+
+.logo-studio {
+    display: block;
+
+    width: min(35vw, 190px);
+    max-width: 100%;
+
+    max-height: 13dvh;
+    height: auto;
+
+    object-fit: contain;
+}
+
+
+/* AJUSTES PARA TELAS BAIXAS */
+
+@media (max-height: 500px) {
+  
+/* ESTRUTURA RESPONSIVA DO MENU */
+
+.menu-principal {
+    width: 100%;
+
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    padding:
+        clamp(6px, 2dvh, 25px)
+        clamp(10px, 2vw, 20px);
+
+    gap: clamp(4px, 1dvh, 16px);
+
+    overflow: hidden;
+}
+
+
+  .logo-jogo {
+    max-height: 22vh;
+  }
+
+  
+/* BOTÕES CENTRAIS RESPONSIVOS */
+
+.menu-botoes {
+    width: min(42vw, 320px);
+    max-width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: clamp(5px, 1.5dvh, 14px);
+
+    margin: auto 0;
+}
+
+
+  
+.menu-botoes button {
+    width: 100%;
+
+    min-height: 0;
+    height: clamp(30px, 8dvh, 54px);
+
+    background: #123c72;
+    color: white;
+
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+
+    font-size: clamp(12px, 2.5dvh, 18px);
+    font-weight: bold;
+    letter-spacing: 2px;
+
+    cursor: pointer;
+    transition: 0.2s;
+
+    touch-action: manipulation;
+}
+
+
+  .logo-studio {
+    max-height: 12vh;
+  }
+}
+
+/* EFEITO ELÉTRICO ANIMADO DO MENU */
+
+body {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ILUMINAÇÃO ELÉTRICA */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      rgba(0, 174, 255, 0.24) 0%,
+      rgba(0, 102, 255, 0.08) 35%,
+      transparent 70%
+    );
+
+  pointer-events: none;
+  z-index: -1;
+
+  animation: pulsarEnergia 4s ease-in-out infinite;
+}
+
+/* ANIMAÇÃO DO BRILHO */
+
+@keyframes pulsarEnergia {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.95);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* RESPEITAR PREFERÊNCIA DE MOVIMENTO REDUZIDO */
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
+/* PARTÍCULAS ELÉTRICAS */
+
+
+.particulas {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Manter os elementos do menu acima das partículas */
+.menu-principal {
+  position: relative;
+  z-index: 1;
+}
+
+.particulas span {
+  position: absolute;
+  bottom: 0;
+
+  width: 6px;
+  height: 6px;
+
+  background: #38bdf8;
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 10px #38bdf8,
+    0 0 20px #0284c7;
+
+  animation: subirParticula 4s linear infinite;
+}
+
+.particulas span:nth-child(1) {
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.particulas span:nth-child(2) {
+  left: 25%;
+  animation-delay: -2s;
+}
+
+.particulas span:nth-child(3) {
+  left: 40%;
+  animation-delay: -4s;
+}
+
+.particulas span:nth-child(4) {
+  left: 55%;
+  animation-delay: -1s;
+}
+
+.particulas span:nth-child(5) {
+  left: 70%;
+  animation-delay: -5s;
+}
+
+.particulas span:nth-child(6) {
+  left: 85%;
+  animation-delay: -3s;
+}
+
+.particulas span:nth-child(7) {
+  left: 35%;
+  animation-delay: -6s;
+}
+
+.particulas span:nth-child(8) {
+  left: 65%;
+  animation-delay: -7s;
+}
+
+
+@keyframes subirParticula {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-120vh);
+    opacity: 0;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .particulas span {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+/* =====================================
+   PAINEL DE CONFIGURAÇÕES
+===================================== */
+
+.painel-configuracoes {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 25px;
+  padding: 20px;
+
+  background: rgba(2, 10, 30, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+/* Manter o painel escondido quando necessário */
+.painel-configuracoes[hidden] {
+  display: none;
+}
+
+/* TÍTULO */
+
+.painel-configuracoes h2 {
+  color: #7dd3fc;
+  font-size: clamp(22px, 4vw, 36px);
+  letter-spacing: 3px;
+  text-align: center;
+
+  text-shadow: 0 0 20px #0284c7;
+}
+
+/* OPÇÕES DE VOLUME */
+
+.config-opcao {
+  width: min(100%, 350px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.config-opcao label {
+  font-size: 17px;
+  font-weight: bold;
+  color: white;
+}
+
+/* BARRAS DE VOLUME */
+
+.config-opcao input[type="range"] {
+  width: 100%;
+  height: 8px;
+
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+
+/* BOTÃO VOLTAR */
+
+#btnVoltarConfig {
+  width: min(100%, 250px);
+  min-height: 50px;
+
+  background: #123c72;
+  color: white;
+
+  border: 2px solid #38bdf8;
+  border-radius: 12px;
+
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+}
+
+#btnVoltarConfig:hover {
+  background: #1674bc;
+  box-shadow: 0 0 20px #38bdf8;
+}
+
+/* ADAPTAÇÃO PARA CELULARES */
+
+@media (max-height: 500px) {
+  .painel-configuracoes {
+    gap: 12px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .painel-configuracoes h2 {
+    margin: 5px 0;
+  }
+
+  .config-opcao {
+    gap: 5px;
+  }
+
+  #btnVoltarConfig {
+    min-height: 38px;
+    font-size: 13px;
+  }
+}
+
+/* ==========================================
+   MENU RESPONSIVO — CHOQUE NO SISTEMA REMAKE
+   ========================================== */
+
+/* Evitar margens e rolagem */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+/* Adaptar imagens à largura disponível */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Melhorar interação em dispositivos touch */
+button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* AJUSTES FINAIS PARA TELAS HORIZONTAIS */
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+    .menu-topo,
+    .menu-rodape {
+        flex-shrink: 1;
+        min-height: 0;
+    }
+
+    .logo-jogo {
+        max-height: 20dvh;
+    }
+
+    .logo-studio {
+        max-height: 10dvh;
+    }
+
+    .menu-botoes {
+        flex-shrink: 0;
+        gap: 5px;
+    }
+
+    .menu-botoes button {
+        height: clamp(28px, 7dvh, 38px);
+        min-height: 0;
+    }
+}
