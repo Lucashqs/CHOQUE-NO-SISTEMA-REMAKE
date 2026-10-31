@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p app/src/main/assets
 
-          cp teste_mundo1.html app/src/main/assets/
+          cp index.html app/src/main/assets/
 
           for pasta in imagens js sons sprites; do
             if [ -d "$pasta" ]; then
@@ -42,7 +42,7 @@ jobs:
             fi
           done
 
-          test -f app/src/main/assets/teste_mundo1.html
+          test -f app/src/main/assets/index.html
 
       - name: Compilar APK Debug
         run: gradle --no-daemon :app:assembleDebug
