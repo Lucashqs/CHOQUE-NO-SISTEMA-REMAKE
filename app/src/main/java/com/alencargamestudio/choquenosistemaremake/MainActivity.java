@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         webView.loadUrl(
-            "file:///android_assets/assets/index.html"
+            "file:///android_assets/index.html"
         );
     }
 
