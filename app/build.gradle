@@ -1,0 +1,53 @@
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.alencargamestudio.choquenosistemaremake'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.alencargamestudio.choquenosistemaremake"
+
+        minSdk 23
+        targetSdk 35
+
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv("KEYSTORE_FILE")
+            def storePass = System.getenv("KEYSTORE_PASSWORD")
+            def aliasName = System.getenv("KEY_ALIAS")
+            def keyPass = System.getenv("KEY_PASSWORD")
+
+            if (keystorePath && storePass && aliasName && keyPass) {
+                storeFile file(keystorePath)
+                storePassword storePass
+                keyAlias aliasName
+                keyPassword keyPass
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+
+        release {
+            minifyEnabled false
+            debuggable false
+
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
