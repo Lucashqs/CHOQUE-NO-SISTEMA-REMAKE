@@ -32,17 +32,17 @@ jobs:
 
       - name: Preparar arquivos do jogo
         run: |
-          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/assets/assets
 
-          cp index.html app/src/main/assets/
+          cp index.html app/src/main/assets/assets
 
           for pasta in imagens js sons sprites; do
             if [ -d "$pasta" ]; then
-              cp -R "$pasta" app/src/main/assets/
+              cp -R "$pasta" app/src/main/assets/assets
             fi
           done
 
-          test -f app/src/main/assets/index.html
+          test -f app/src/main/assets/assets/index.html
 
       - name: Compilar APK Debug
         run: gradle --no-daemon :app:assembleDebug
