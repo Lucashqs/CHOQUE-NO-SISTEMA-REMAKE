@@ -72,7 +72,7 @@ jobs:
       # COMPILAR APK DE TESTE
       - name: Compilar APK Debug
         run: |
-          bash ./gradlew --no-daemon :app:assembleDebug
+          gradle --no-daemon :app:assembleDebug
 
       # RESTAURAR ASSINATURA
       - name: Restaurar keystore
@@ -101,7 +101,7 @@ jobs:
         run: |
           set -e
 
-          bash ./gradlew --no-daemon \
+          gradle --no-daemon \
             :app:assembleRelease \
             :app:bundleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/release.jks" \
