@@ -64,6 +64,35 @@
             touch-action: none;
         }
 
+        
+        /* BOTÃO DE PAUSE */
+
+        #btnPause {
+            position: absolute;
+            top: 2%;
+            right: 2%;
+            z-index: 8;
+
+            padding: 8px 14px;
+
+            background: rgba(18, 60, 114, 0.9);
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            font-size: clamp(10px, 1.6cqw, 16px);
+            font-weight: bold;
+
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #btnPause:active {
+            background: #1674bc;
+        }
+
+
         /* VIDA DO HERÓI */
 
         
@@ -188,6 +217,127 @@
             display: none;
         }
 
+
+        
+        /* MENU DE PAUSE */
+
+        #menuPause {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+
+            background: rgba(2, 10, 30, 0.94);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        #menuPause[hidden] {
+            display: none;
+        }
+
+        #menuPause h2 {
+            color: #7dd3fc;
+            font-size: clamp(20px, 4cqw, 38px);
+            text-shadow: 0 0 20px #0284c7;
+            margin: 0 0 12px;
+        }
+
+        #menuPause button {
+            width: min(50%, 280px);
+            min-height: 42px;
+
+            background: #123c72;
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+
+            font-size: clamp(11px, 2cqw, 18px);
+            font-weight: bold;
+
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #menuPause button:active {
+            background: #1674bc;
+        }
+
+
+        
+        /* TELA DE ESCOLHA DO NOME */
+
+        #telaEscolhaNome {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            gap: clamp(8px, 2cqw, 18px);
+            padding: 20px;
+
+            background: rgba(2, 10, 30, 0.96);
+            text-align: center;
+        }
+
+        #telaEscolhaNome[hidden] {
+            display: none;
+        }
+
+        #telaEscolhaNome h2 {
+            color: #7dd3fc;
+            font-size: clamp(18px, 3.5cqw, 34px);
+            margin: 0;
+        }
+
+        #telaEscolhaNome p {
+            font-size: clamp(11px, 1.7cqw, 17px);
+            margin: 0;
+        }
+
+        #inputNomeHeroi {
+            width: min(75%, 320px);
+            padding: 12px;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            background: #071b3b;
+            color: white;
+
+            font-size: clamp(12px, 2cqw, 18px);
+            text-align: center;
+            outline: none;
+        }
+
+        #btnConfirmarNome {
+            padding: 12px 25px;
+
+            background: #123c72;
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            font-size: clamp(12px, 2cqw, 18px);
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #erroNomeHeroi {
+            color: #f87171;
+        }
+
+
         /* TELA DE GAME OVER */
 
         #gameOver {
@@ -296,6 +446,13 @@
             height="540"
         ></canvas>
 
+        
+        <!-- BOTÃO DE PAUSE -->
+        <button id="btnPause" type="button">
+            ⏸ PAUSE
+        </button>
+
+
         <!-- VIDA DO HERÓI -->
 
         <div class="hud">
@@ -309,6 +466,48 @@
                 100 / 100 HP
             </span>
         </div>
+
+
+        <!-- MENU DE PAUSE -->
+        <div id="menuPause" hidden>
+
+            <h2>JOGO PAUSADO</h2>
+
+            <button id="btnContinuarJogo" type="button">
+                CONTINUAR JOGO
+            </button>
+
+            <button id="btnVoltarMenu" type="button">
+                VOLTAR AO MENU
+            </button>
+
+        </div>
+
+
+        
+        <!-- TELA DE ESCOLHA DO NOME -->
+        <div id="telaEscolhaNome" hidden>
+            <h2>QUAL É O SEU NOME, HERÓI?</h2>
+
+            <p>Como devemos chamar você nesta aventura?</p>
+
+            <input
+                type="text"
+                id="inputNomeHeroi"
+                placeholder="Digite seu nome"
+                maxlength="20"
+                autocomplete="off"
+            >
+
+            <button id="btnConfirmarNome" type="button">
+                CONFIRMAR NOME
+            </button>
+
+            <p id="erroNomeHeroi" hidden>
+                Digite um nome para continuar!
+            </p>
+        </div>
+
 
         <!-- GAME OVER -->
 
@@ -366,6 +565,9 @@
   <script src="js/chefao_raio_de_fogo.js"></script>
   <script src="js/cutscenes.js"></script>
   <script src="js/projeteis.js"></script>
+  <!-- SISTEMA DE CHECKPOINTS -->
+  <script src="js/salvamento.js"></script>
+
 
   <script>
     const canvas =
@@ -375,8 +577,126 @@
 
     const teclas = {};
 
-    let cameraX = 0;
+    
+    /* =====================================
+       MÚSICA DA FASE 1
+    ===================================== */
+
+    const musicaFase = new Audio("audio/musica_abertura.mp3");
+
+    musicaFase.loop = true;
+    musicaFase.volume = 0.5;
+
+    function iniciarMusicaFase() {
+        musicaFase.play().catch(erro => {
+            console.log("Áudio aguardando interação:", erro);
+        });
+    }
+
+
+    
+    /* SISTEMA DE PAUSE */
+
+    let jogoPausado = false;
+
+    const btnPause = document.getElementById("btnPause");
+    const menuPause = document.getElementById("menuPause");
+    const btnContinuarJogo = document.getElementById("btnContinuarJogo");
+    const btnVoltarMenu = document.getElementById("btnVoltarMenu");
+
+    function alterarPausa(pausar) {
+        if (gameOver) return;
+
+        jogoPausado = pausar;
+        menuPause.hidden = !pausar;
+
+        // Soltar todos os controles pressionados
+        Object.keys(teclas).forEach(
+            tecla => teclas[tecla] = false
+        );
+    }
+    
+    btnPause.addEventListener("click", () => {
+        if (aguardandoNome) return;
+        alterarPausa(true);
+    });
+
+
+    btnContinuarJogo.addEventListener("click", () => {
+        ultimoFrame = performance.now();
+        alterarPausa(false);
+    });
+
+    btnVoltarMenu.addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+
+
+    
+    /* =====================================
+      IDENTIFICAR PARTIDA SALVA
+    ===================================== */
+
+    const parametrosJogo =
+      new URLSearchParams(window.location.search);
+
+    const continuarPartida =
+      parametrosJogo.get("continuar") === "1";
+
+    const progressoSalvo =
+      continuarPartida ? Salvamento.carregar() : null;
+
+      
+    /* SISTEMA DE NOME DO HERÓI */
+
+    const telaEscolhaNome =
+        document.getElementById("telaEscolhaNome");
+
+    const inputNomeHeroi =
+        document.getElementById("inputNomeHeroi");
+
+    const btnConfirmarNome =
+        document.getElementById("btnConfirmarNome");
+
+    const erroNomeHeroi =
+        document.getElementById("erroNomeHeroi");
+
+    // Recuperar o nome de uma partida salva
+    let nomeHeroi = progressoSalvo?.nomeHeroi || "";
+
+    
+    // Disponibilizar o nome para as cutscenes
+    window.nomeHeroiPersonalizado = nomeHeroi || "HERÓI";
+
+
+    // Impedir que o jogo comece antes da escolha
+    let aguardandoNome = !progressoSalvo;
+
+    if (aguardandoNome) {
+
+      telaEscolhaNome.hidden = false;
+    }
+
+
+    console.log(
+      "Modo de jogo:",
+      progressoSalvo ? "CONTINUAR" : "NOVA PARTIDA"
+    );
+
+
+    
+    let cameraX = progressoSalvo
+      ? Math.max(
+          0,
+          Math.min(
+            Mundo1.largura - canvas.width,
+            progressoSalvo.checkpointX - canvas.width * 0.35
+          )
+        )
+      : 0;
+
     let cameraY = 560;
+
     let ultimoFrame = performance.now();
 
     let fireballDisparada = false;
@@ -398,6 +718,86 @@
       tempoDano: 0
     };
 
+    
+    /* =====================================
+      CHOQUE NO SISTEMA REMAKE
+      DADOS DO CHECKPOINT
+    ===================================== */
+
+    function coletarDadosCheckpoint() {
+
+      return {
+
+        // Mundo atual
+        mundo: 1,
+        nomeHeroi: nomeHeroi,
+
+        // Posição do herói
+        checkpointX: Jogador.x,
+        checkpointY: Jogador.y,
+
+        // Vida do herói
+        vida: vidaHeroi.valor,
+
+        // Saqueadores derrotados
+        
+        saqueadoresDerrotados: Inimigos.lista
+          .filter(npc => npc.derrotaContabilizada === true)
+          .map(npc => npc.id),
+
+        // Progresso das regiões
+        avenidaConcluida:
+          Inimigos.avenidaCentralConcluida(),
+
+        distritoConcluido:
+          Inimigos.distritoComercialConcluido(),
+
+        industrialConcluido:
+          Inimigos.bairroIndustrialConcluido(),
+
+        // Situação do primeiro chefão
+        raioDeFogoDerrotado:
+          RaioDeFogo.derrotado === true
+
+      };
+
+    }
+
+    
+    /* =====================================
+      CONTROLE DOS CHECKPOINTS
+    ===================================== */
+
+    // Identificar o último checkpoint salvo
+    let ultimoCheckpoint = progressoSalvo
+      ? (progressoSalvo.checkpointNumero || 0)
+      : 0;
+
+    // Registrar um novo checkpoint
+    function registrarCheckpoint(numero) {
+
+      // Evitar salvar novamente o mesmo checkpoint
+      if (numero <= ultimoCheckpoint) {
+        return;
+      }
+
+      const dados = coletarDadosCheckpoint();
+
+      dados.checkpointNumero = numero;
+
+      const salvou = Salvamento.salvar(dados);
+
+      if (salvou) {
+        ultimoCheckpoint = numero;
+
+        console.log(
+          "CHECKPOINT " + numero + " SALVO!"
+        );
+      }
+    }
+
+
+
     const telaGameOver =
       document.getElementById("gameOver");
 
@@ -416,10 +816,184 @@
     // Inicializacao.
     AnimacoesHeroi.iniciar();
     Inimigos.iniciar();
-    // INICIAR CUTSCENE DO MUNDO!
-    Cutscenes.iniciar("intro");
-    // Preparar a entrada do Raio de Fogo
-    Cutscenes.iniciarEntradaRaio();
+    
+    /* =====================================
+      RESTAURAR HERÓI DO CHECKPOINT
+    ===================================== */
+
+    if (progressoSalvo) {
+
+      // Recuperar posição
+      Jogador.x = progressoSalvo.checkpointX;
+      Jogador.y = progressoSalvo.checkpointY;
+
+      // Recuperar vida
+      if (Number.isFinite(progressoSalvo.vida)) {
+        vidaHeroi.valor = Math.max(
+          1,
+          Math.min(vidaHeroi.maxima, progressoSalvo.vida)
+        );
+      }
+
+      // Reiniciar velocidade e movimento
+      Jogador.vx = 0;
+      Jogador.vy = 0;
+      Jogador.tempoImpacto = 0;
+      Jogador.velocidadeImpacto = 0;
+      Jogador.subindoEscada = false;
+      Jogador.escadaAtual = null;
+
+      console.log(
+        "HERÓI RESTAURADO:",
+        Jogador.x,
+        Jogador.y,
+        vidaHeroi.valor
+      );
+    }
+
+    
+    /* =====================================
+      RESTAURAR SAQUEADORES DERROTADOS
+    ===================================== */
+
+    if (progressoSalvo) {
+
+      const idsDerrotados = new Set(
+        Array.isArray(progressoSalvo.saqueadoresDerrotados)
+          ? progressoSalvo.saqueadoresDerrotados
+          : []
+      );
+
+      let totalRestaurado = 0;
+
+      Inimigos.lista.forEach(npc => {
+
+        if (!idsDerrotados.has(npc.id)) {
+          return;
+        }
+
+        npc.vida = 0;
+        npc.vivo = false;
+        npc.derrotado = true;
+        npc.derrotaContabilizada = true;
+        npc.estado = "death";
+        npc.liberado = true;
+
+        totalRestaurado++;
+      });
+
+      // Restaurar a contagem utilizada para liberar
+      // progressivamente os próximos Saqueadores.
+      Inimigos.totalDerrotados = totalRestaurado;
+
+      Inimigos.atualizarLiberacao();
+
+      console.log(
+        "SAQUEADORES RESTAURADOS:",
+        totalRestaurado
+      );
+    }
+
+    
+    /* =====================================
+      INICIALIZAÇÃO DAS CUTSCENES
+    ===================================== */
+
+    if (!progressoSalvo) {
+
+      // NOVA PARTIDA
+      // A cutscene será iniciada após confirmar o nome.
+      
+
+    } else {
+
+      // CONTINUAR PARTIDA
+
+      
+      // Iniciar a música ao continuar a partida
+      iniciarMusicaFase();
+
+      // Caso o navegador bloqueie o áudio,
+      // iniciar após a primeira interação do jogador
+      document.addEventListener(
+          "pointerdown",
+          iniciarMusicaFase,
+          { once: true }
+      );
+
+      document.addEventListener(
+          "keydown",
+          iniciarMusicaFase,
+          { once: true }
+      );
+
+
+      Cutscenes.estado = "combate_saqueadores";
+      Cutscenes.ativa = false;
+      Cutscenes.tempo = 0;
+      Cutscenes.dialogoAtual = 0;
+
+      
+      /* =====================================
+        RESTAURAR ESTADO DO RAIO DE FOGO
+      ===================================== */
+
+      RaioDeFogo.carregarSprites();
+
+      RaioDeFogo.x = 4200;
+      RaioDeFogo.y = 870;
+      RaioDeFogo.vida = RaioDeFogo.vidaMaxima;
+
+      RaioDeFogo.ativo = false;
+      RaioDeFogo.derrotado = false;
+      RaioDeFogo.estado = "aguardando";
+
+      
+      /* =====================================
+        PREPARAR RETORNO CINEMATOGRÁFICO
+      ===================================== */
+
+      Cutscenes.retornoRaioPreparado = false;
+      Cutscenes.raioChegou = false;
+
+      RaioDeFogo.frame = 0;
+      RaioDeFogo.tempoAnimacao = 0;
+      RaioDeFogo.frameDerrota = 0;
+      RaioDeFogo.tempoDerrota = 0;
+
+      RaioDeFogo.animacaoDerrotaFinalizada = false;
+      RaioDeFogo.cutsceneDerrotaIniciada = false;
+
+
+      RaioDeFogo.atacando = false;
+      RaioDeFogo.movendo = false;
+      RaioDeFogo.heroiDetectado = false;
+      RaioDeFogo.projeteis = [];
+
+      if (progressoSalvo.raioDeFogoDerrotado === true) {
+
+        RaioDeFogo.vida = 0;
+        RaioDeFogo.derrotado = true;
+        RaioDeFogo.estado = "derrota";
+        RaioDeFogo.animacaoDerrotaFinalizada = true;
+        RaioDeFogo.cutsceneDerrotaIniciada = true;
+
+        console.log("RAIO DE FOGO JÁ DERROTADO!");
+
+      } else {
+
+        console.log("RAIO DE FOGO AGUARDANDO BATALHA!");
+
+      }
+
+
+      console.log(
+        "CHECKPOINT CARREGADO — HERÓI LIBERADO!"
+      );
+
+    }
+
+
 
 
     const botoes = {
@@ -448,7 +1022,8 @@
 
               if (
                 vidaHeroi.valor <= 0 ||
-                gameOver
+                gameOver ||
+                jogoPausado
               ) {
                 return;
               }
@@ -473,7 +1048,8 @@
 
             if (
               vidaHeroi.valor <= 0 ||
-              gameOver
+              gameOver ||
+              jogoPausado
             ) {
               return;
             }
@@ -578,6 +1154,11 @@
         // CONTROLE DOS DIÁLOGOS
     canvas.addEventListener("pointerdown", (evento) => {
 
+
+      
+      if (jogoPausado) return;
+
+
         console.log("Canvas recebeu clique!");
 
         if (
@@ -597,6 +1178,57 @@
 
     });
 
+
+    /* CONFIRMAR NOME DO HERÓI */
+
+    btnConfirmarNome.addEventListener("click", () => {
+
+        const nomeDigitado = inputNomeHeroi.value.trim();
+
+        if (!nomeDigitado) {
+            erroNomeHeroi.hidden = false;
+            return;
+        }
+
+        nomeHeroi = nomeDigitado;
+
+        
+        // Atualizar o nome exibido nos diálogos
+        window.nomeHeroiPersonalizado = nomeHeroi;
+
+        aguardandoNome = false;
+
+        
+        // Atualizar o nome em um checkpoint já existente
+        const saveExistente = Salvamento.carregar();
+
+        if (saveExistente) {
+            Salvamento.salvar({
+                ...saveExistente,
+                nomeHeroi: nomeHeroi
+            });
+        }
+
+
+        erroNomeHeroi.hidden = true;
+        telaEscolhaNome.hidden = true;
+
+        // Limpar controles antes de iniciar
+        Object.keys(teclas).forEach(
+            tecla => teclas[tecla] = false
+        );
+
+        // Iniciar a primeira cutscene
+        Cutscenes.iniciar("intro");
+        Cutscenes.iniciarEntradaRaio();
+
+        
+        // Iniciar música da fase 1
+        iniciarMusicaFase();
+
+
+        console.log("NOME DO HERÓI:", nomeHeroi);
+    });
 
 
     // Reiniciar partida.
@@ -759,6 +1391,16 @@
 
     function atualizar() {
 
+
+      
+      // CONGELAR A PARTIDA DURANTE O PAUSE
+      if (jogoPausado || aguardandoNome) {
+          ultimoFrame = performance.now();
+          requestAnimationFrame(atualizar);
+          return;
+      }
+
+
       
       // OCULTAR CONTROLES DURANTE AS CUTSCENES
       const controlesTela = document.querySelector(".controles");
@@ -833,6 +1475,21 @@
       const avenidaConcluida =
         Inimigos.avenidaCentralConcluida();
 
+      
+      /* =====================================
+        CHECKPOINT 1 — AVENIDA CENTRAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(1);
+      }
+  
+
       // Centro do heroi na tela.
       const alvoX =
         Jogador.x +
@@ -851,8 +1508,58 @@
       const distritoConcluido =
         Inimigos.distritoComercialConcluido();
 
+        
+      /* =====================================
+        CHECKPOINT 2 — DISTRITO COMERCIAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(2);
+      }
+
+
       const industrialConcluido =
         Inimigos.bairroIndustrialConcluido();
+        
+      
+      /* =====================================
+        CHECKPOINT 3 — BAIRRO INDUSTRIAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        industrialConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(3);
+      }
+
+      /* =====================================
+        CHECKPOINT 4 — USINA ELÉTRICA
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        industrialConcluido &&
+        RaioDeFogo.derrotado === true &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(4);
+      }
+
+
 
       // Inicialmente, apenas a Avenida Central
       let limiteRegiao = 1200;
@@ -979,18 +1686,32 @@
 
         
 
+       
+        /* =====================================
+          INICIAR BATALHA FINAL
+        ===================================== */
+
         if (
           !Cutscenes.ativa &&
           !RaioDeFogo.ativo &&
           !RaioDeFogo.derrotado &&
           Inimigos.podeIniciarChefao()
         ) {
+
+          // Reiniciar o controle da entrada cinematográfica
+          Cutscenes.retornoRaioPreparado = false;
+
+          // Preparar o chefão para a batalha
           RaioDeFogo.iniciar();
 
+          // Iniciar a cena de retorno
           Cutscenes.iniciar("retorno_raio");
 
-          console.log("CUTSCENE DO RETORNO DO RAIO DE FOGO INICIADA!");
+          console.log(
+            "CUTSCENE DO RETORNO DO RAIO DE FOGO INICIADA!"
+          );
         }
+
 
         // Atualizar o chefão
         if (!Cutscenes.ativa){

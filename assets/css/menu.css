@@ -16,14 +16,15 @@ body {
 body {
   min-height: 100vh;
   min-height: 100dvh;
-
+  
   background:
-    radial-gradient(
-      ellipse at 50% 35%,
-      #123e75 0%,
-      #071b3b 48%,
-      #020713 100%
-    );
+    linear-gradient(
+      rgba(0, 8, 25, 0.25),
+      rgba(0, 8, 25, 0.45)
+    ),
+    url("../imagens/background_menu.png")
+    center center / cover no-repeat;
+
 
   color: white;
   font-family: Arial, sans-serif;
@@ -536,4 +537,16 @@ button {
         height: clamp(28px, 7dvh, 38px);
         min-height: 0;
     }
+}
+
+/* BOTÃO CONTINUAR SEM SALVAMENTO */
+
+#btnContinuar:disabled {
+  background: #263447;
+  border-color: #526174;
+  color: #94a3b8;
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }

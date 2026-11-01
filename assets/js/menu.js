@@ -108,3 +108,36 @@ document.addEventListener(
   iniciarMusicaMenu,
   { once: true }
 );
+
+/* =====================================
+   BOTÃO CONTINUAR
+===================================== */
+
+const btnContinuar =
+  document.getElementById("btnContinuar");
+
+// Verificar se existe checkpoint salvo
+function atualizarBotaoContinuar() {
+
+  const possuiSalvamento = Salvamento.existe();
+
+  btnContinuar.disabled = !possuiSalvamento;
+
+  console.log(
+    "Checkpoint disponível:",
+    possuiSalvamento
+  );
+}
+
+// Verificar ao abrir o menu
+atualizarBotaoContinuar();
+
+// Continuar a partida salva
+btnContinuar.addEventListener("click", () => {
+
+  if (!Salvamento.existe()) return;
+
+  window.location.href =
+    "teste_mundo1.html?continuar=1";
+
+});
