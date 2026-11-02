@@ -132,14 +132,20 @@
 
     
     <script>
+        
         function sairDoJogo() {
-            if (
-                window.Android &&
-                typeof window.Android.sairDoJogo === "function"
-            ) {
+
+            if (window.Android &&
+                typeof window.Android.sairDoJogo === "function") {
+
                 window.Android.sairDoJogo();
+
             } else {
-                console.log("Função disponível no APK Android.");
+
+                alert(
+                    "ERRO: Comunicação com Android não encontrada!"
+                );
+
             }
         }
     </script>
