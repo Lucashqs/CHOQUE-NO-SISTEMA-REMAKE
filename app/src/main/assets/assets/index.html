@@ -95,11 +95,21 @@
         JOGAR
         </button>
 
+        
+        <!-- CONTINUAR PARTIDA SALVA -->
+        <button
+        id="btnContinuar"
+        disabled
+        >
+        CONTINUAR
+        </button>
+
+
         <button id="btnConfiguracoes">
         CONFIGURAÇÕES
         </button>
 
-        <button id="btnSair">
+        <button id="btnSair" onclick="sairDoJogo()">
         SAIR
         </button>
 
@@ -116,7 +126,25 @@
 
     </main>
 
+    
+    <script src="js/salvamento.js"></script>
     <script src="js/menu.js"></script>
+
+    
+    <script>
+        function sairDoJogo() {
+            if (
+                window.Android &&
+                typeof window.Android.sairDoJogo === "function"
+            ) {
+                window.Android.sairDoJogo();
+            } else {
+                console.log("Função disponível no APK Android.");
+            }
+        }
+    </script>
+
+
 
 </body>
 
