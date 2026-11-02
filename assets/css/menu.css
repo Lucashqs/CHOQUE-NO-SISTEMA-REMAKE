@@ -550,3 +550,95 @@ button {
   box-shadow: none;
   transform: none;
 }
+
+
+/* =====================================
+   CHOQUE NO SISTEMA REMAKE
+   JANELA DE CONFIRMAÇÃO DE SAÍDA
+===================================== */
+
+.janela-sair[hidden] {
+    display: none !important;
+}
+
+.janela-sair {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.caixa-sair {
+    width: 100%;
+    max-width: 420px;
+    padding: 30px 20px;
+    box-sizing: border-box;
+    background: linear-gradient(
+        145deg,
+        #07152e,
+        #102b59
+    );
+    border: 2px solid #ffdf00;
+    border-radius: 18px;
+    box-shadow:
+        0 0 15px #ffdf00,
+        0 0 35px rgba(0, 170, 255, 0.5);
+    text-align: center;
+    animation: surgirJanela 0.25s ease-out;
+}
+
+.caixa-sair h2 {
+    color: #ffdf00;
+    font-size: 24px;
+    margin-bottom: 18px;
+    text-shadow: 0 0 12px #ffdf00;
+}
+
+.caixa-sair p {
+    color: white;
+    font-size: 17px;
+    margin-bottom: 25px;
+}
+
+.botoes-sair {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.botoes-sair button {
+    flex: 1;
+    padding: 13px 10px;
+    border: 2px solid #ffdf00;
+    border-radius: 10px;
+    background: #102b59;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.botoes-sair button:active {
+    background: #ffdf00;
+    color: #07152e;
+}
+
+@keyframes surgirJanela {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
