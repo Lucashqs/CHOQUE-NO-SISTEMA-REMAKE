@@ -109,7 +109,7 @@
         CONFIGURAÇÕES
         </button>
 
-        <button id="btnSair">
+        <button id="btnSair" onclick="sairDoJogo()">
         SAIR
         </button>
 
@@ -129,6 +129,27 @@
     
     <script src="js/salvamento.js"></script>
     <script src="js/menu.js"></script>
+
+    
+    <script>
+        
+        function sairDoJogo() {
+
+            if (window.Android &&
+                typeof window.Android.sairDoJogo === "function") {
+
+                window.Android.sairDoJogo();
+
+            } else {
+
+                alert(
+                    "ERRO: Comunicação com Android não encontrada!"
+                );
+
+            }
+        }
+    </script>
+
 
 
 </body>
