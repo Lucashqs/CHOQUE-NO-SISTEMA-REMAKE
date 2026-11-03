@@ -1,7 +1,7 @@
 
 /*
- * CHOQUE NO SISTEMA 2.0
- * Sistema de Projeteis - Fireball Eletrica
+ * CHOQUE NO SISTEMA REMAKE
+ * Sistema de Projéteis — Bola Elétrica
  * Alencar Game Studio
  */
 
@@ -15,10 +15,25 @@ window.Projeteis = {
   dano: 20,
 
   // ==================================
-  // DISPARAR FIREBALL
+  // DISPARAR BOLA ELÉTRICA
   // ==================================
 
   disparar(jogador, direcao) {
+
+    if (!jogador) {
+      return null;
+    }
+
+    // Verificar e consumir energia
+    const custo = jogador.custoBolaEletrica ?? 20;
+
+    if (
+      typeof jogador.consumirEnergia === "function" &&
+      !jogador.consumirEnergia(custo)
+    ) {
+      console.log("ENERGIA INSUFICIENTE!");
+      return null;
+    }
 
     const sentido =
       direcao === -1 ? -1 : 1;
@@ -48,7 +63,7 @@ window.Projeteis = {
   },
 
   // ==================================
-  // ATUALIZAR PROJETEIS
+  // ATUALIZAR PROJÉTEIS
   // ==================================
 
   atualizar(dt, inimigos) {
@@ -69,8 +84,7 @@ window.Projeteis = {
         bola.direcao *
         fator;
 
-      // Hitbox que cobre todo o
-      // deslocamento do projetil.
+      // Hitbox cobre todo o deslocamento
       const esquerda = Math.min(
         xAnterior,
         bola.x
@@ -89,7 +103,10 @@ window.Projeteis = {
         dano: this.dano
       };
 
-      // Verificar colisao com NPCs.
+      // ==================================
+      // COLISÃO COM NPCs
+      // ==================================
+
       const atingidos =
         inimigos.receberAtaque(
           hitbox,
@@ -101,10 +118,9 @@ window.Projeteis = {
         continue;
       }
 
-      
-      // ==========================================
-      // COLISÃO DA BOLA DE RAIO COM O CHEFÃO
-      // ==========================================
+      // ==================================
+      // COLISÃO COM O CHEFÃO RAIO DE FOGO
+      // ==================================
 
       if (
         typeof RaioDeFogo !== "undefined" &&
@@ -113,8 +129,6 @@ window.Projeteis = {
         !Cutscenes.ativa
       ) {
 
-        
-        // Área de colisão mais próxima do corpo visível
         const margemX = 25;
         const margemY = 15;
 
@@ -133,7 +147,6 @@ window.Projeteis = {
           hitbox.y < corpoY + corpoAltura &&
           hitbox.y + hitbox.h > corpoY;
 
-
         if (colisaoChefao) {
 
           RaioDeFogo.receberDano(this.dano);
@@ -141,7 +154,7 @@ window.Projeteis = {
           bola.ativa = false;
 
           console.log(
-            "BOLA DE RAIO ATINGIU O CHEFÃO!",
+            "BOLA ELÉTRICA ATINGIU O CHEFÃO!",
             "Dano:", this.dano,
             "Vida restante:", RaioDeFogo.vida
           );
@@ -150,8 +163,10 @@ window.Projeteis = {
         }
       }
 
+      // ==================================
+      // LIMITE DE ALCANCE
+      // ==================================
 
-      // Limite de alcance.
       if (
         Math.abs(
           bola.x - bola.inicioX
@@ -160,7 +175,10 @@ window.Projeteis = {
         bola.ativa = false;
       }
 
-      // Limites do mundo.
+      // ==================================
+      // LIMITES DO MUNDO
+      // ==================================
+
       if (
         typeof Mundo1 !== "undefined" &&
         (
@@ -172,14 +190,14 @@ window.Projeteis = {
       }
     }
 
-    // Remover projeteis inativos.
+    // Remover projéteis inativos
     this.lista = this.lista.filter(
       bola => bola.ativa
     );
   },
 
   // ==================================
-  // DESENHAR FIREBALL
+  // DESENHAR BOLA ELÉTRICA
   // ==================================
 
   desenhar(ctx, cameraX, cameraY) {
@@ -193,10 +211,9 @@ window.Projeteis = {
 
       ctx.save();
 
-      ctx.globalCompositeOperation =
-        "lighter";
+      ctx.globalCompositeOperation = "lighter";
 
-      // Rastro eletrico.
+      // Rastro elétrico
       const rastro = ctx.createLinearGradient(
         x - bola.direcao * 35,
         y,
@@ -228,7 +245,7 @@ window.Projeteis = {
       ctx.lineTo(x, y);
       ctx.stroke();
 
-      // Brilho externo.
+      // Brilho externo
       const brilho =
         ctx.createRadialGradient(
           x, y, 0,
@@ -258,6 +275,7 @@ window.Projeteis = {
       ctx.fillStyle = brilho;
 
       ctx.beginPath();
+
       ctx.arc(
         x,
         y,
@@ -265,15 +283,17 @@ window.Projeteis = {
         0,
         Math.PI * 2
       );
+
       ctx.fill();
 
-      // Nucleo da Fireball.
+      // Núcleo elétrico
       ctx.fillStyle = "#ffffff";
 
       ctx.shadowColor = "#38bdf8";
       ctx.shadowBlur = 18;
 
       ctx.beginPath();
+
       ctx.arc(
         x,
         y,
@@ -281,9 +301,10 @@ window.Projeteis = {
         0,
         Math.PI * 2
       );
+
       ctx.fill();
 
-      // Faiscas eletricas.
+      // Faíscas elétricas
       ctx.shadowBlur = 0;
       ctx.strokeStyle = "#c084fc";
       ctx.lineWidth = 2;

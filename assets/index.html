@@ -109,7 +109,7 @@
         CONFIGURAÇÕES
         </button>
 
-        <button id="btnSair">
+        <button id="btnSair" onclick="sairDoJogo()">
         SAIR
         </button>
 
@@ -127,9 +127,83 @@
     </main>
 
     
+    
+    <!-- JANELA DE CONFIRMAÇÃO DE SAÍDA -->
+    <div id="janelaSair" class="janela-sair" hidden>
+        <div class="caixa-sair">
+            <h2>⚡ SAIR DO JOGO?</h2>
+
+            <p>Deseja realmente sair do
+            Choque no Sistema REMAKE?</p>
+
+            <div class="botoes-sair">
+                <button type="button"
+                    onclick="confirmarSaida()">
+                    SIM, SAIR
+                </button>
+
+                <button type="button"
+                    onclick="cancelarSaida()">
+                    NÃO
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <script src="js/salvamento.js"></script>
     <script src="js/menu.js"></script>
 
+    
+    <script>       
+        
+        /* =====================================
+        CHOQUE NO SISTEMA REMAKE
+        CONFIRMAÇÃO DE SAÍDA
+        ===================================== */
+
+        // Abrir janela de confirmação
+        function sairDoJogo() {
+            const janela = document.getElementById("janelaSair");
+
+            if (janela) {
+                janela.hidden = false;
+            }
+        }
+
+        // Cancelar saída e continuar jogando
+        function cancelarSaida() {
+            const janela = document.getElementById("janelaSair");
+
+            if (janela) {
+                janela.hidden = true;
+            }
+        }
+
+        // Confirmar e fechar o aplicativo
+        function confirmarSaida() {
+
+            // Parar a música do menu
+            const musica = document.getElementById("musicaMenu");
+
+            if (musica) {
+                musica.pause();
+                musica.currentTime = 0;
+            }
+
+            // Fechar o aplicativo Android
+            if (
+                window.Android &&
+                typeof window.Android.sairDoJogo === "function"
+            ) {
+                window.Android.sairDoJogo();
+            } else {
+                alert("Encerramento disponível apenas no APK Android.");
+            }
+        }
+
+
+    </script>
 
 </body>
 

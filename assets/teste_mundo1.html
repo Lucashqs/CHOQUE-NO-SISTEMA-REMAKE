@@ -132,6 +132,31 @@
             background: #22c55e;
         }
 
+        
+        /* =====================================
+          ENERGIA ELÉTRICA DO HERÓI
+        ===================================== */
+
+        #energiaPreenchimento {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                #2563eb,
+                #38bdf8,
+                #a5f3fc
+            );
+            transition: width 0.12s linear;
+        }
+
+        #energiaTexto {
+            display: block;
+            color: #7dd3fc;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+
         /* CONTROLES SOBRE O ASFALTO */
 
         .controles {
@@ -209,6 +234,30 @@
             background: rgba(107, 33, 168, 0.9);
             border-color: #c084fc;
         }
+
+
+        
+        /* =====================================
+          ATAQUE 2 — CARREGAMENTO DE ENERGIA
+        ===================================== */
+
+        #ataque2 {
+            transition:
+                background 0.15s linear,
+                border-color 0.15s linear,
+                filter 0.15s linear,
+                box-shadow 0.15s linear;
+        }
+
+        #ataque2.carregando {
+            cursor: not-allowed;
+        }
+
+        #ataque2.pronto {
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.8);
+            border-color: #e9d5ff;
+        }
+
 
         /* OCULTAR INFORMAÇÕES DE TESTE */
 
@@ -465,6 +514,21 @@
             <span id="vidaTexto">
                 100 / 100 HP
             </span>
+            
+            <!-- ENERGIA ELÉTRICA DO HERÓI -->
+
+            <div style="margin-top: 7px;">
+                <strong style="color: #7dd3fc;">
+                    ⚡ ENERGIA
+                </strong>
+            </div>
+
+            <div class="barra">
+                <div id="energiaPreenchimento"></div>
+            </div>
+
+            <span id="energiaTexto">100 / 100 EN</span>
+
         </div>
 
 
@@ -576,6 +640,27 @@
     const ctx = canvas.getContext("2d");
 
     const teclas = {};
+
+    
+    /* =====================================
+      VERIFICAR SE O ATAQUE 2 ESTÁ PRONTO
+    ===================================== */
+
+    
+    /* =====================================
+      ATAQUE 2 — ENERGIA MÍNIMA
+    ===================================== */
+
+    function ataque2EstaPronto() {
+
+        if (typeof Jogador === "undefined") {
+            return false;
+        }
+
+        return Jogador.energia >= 20;
+    }
+
+
 
     
     /* =====================================
@@ -739,6 +824,32 @@
         // Vida do herói
         vida: vidaHeroi.valor,
 
+        
+        // ESTADO DOS CORAÇÕES DE VIDA
+        
+        coracoes: Inimigos.coracoes.map(coracao => ({
+          x: coracao.x,
+          y: coracao.y,
+          largura: coracao.largura,
+          altura: coracao.altura,
+          cura: coracao.cura,
+          area: coracao.area,
+          especial: coracao.especial === true,
+          coletado: coracao.coletado
+        })),
+
+
+        // CONTAGEM DE DERROTAS POR ÁREA
+        derrotadosPorArea: [...Inimigos.derrotadosPorArea],
+
+        // ÁREAS QUE JÁ LIBERARAM CORAÇÃO
+        coracoesGerados: [...Inimigos.coracoesGerados],
+
+        
+        coracaoEspecialRaioGerado: RaioDeFogo.coracaoEspecialGerado,
+
+
+
         // Saqueadores derrotados
         
         saqueadoresDerrotados: Inimigos.lista
@@ -755,9 +866,18 @@
         industrialConcluido:
           Inimigos.bairroIndustrialConcluido(),
 
+        
         // Situação do primeiro chefão
         raioDeFogoDerrotado:
-          RaioDeFogo.derrotado === true
+          RaioDeFogo.derrotado === true,
+
+        // Vida atual do Raio de Fogo
+        
+        vidaRaioDeFogo: RaioDeFogo.vida,
+        posicaoRaioX: RaioDeFogo.x,
+        posicaoRaioY: RaioDeFogo.y
+
+
 
       };
 
@@ -796,6 +916,63 @@
       }
     }
 
+    
+    /* =====================================
+      CHECKPOINT ESPECIAL — RAIO DE FOGO
+    ===================================== */
+
+    // Controla se o checkpoint especial já foi salvo
+    let checkpointEspecialRaioSalvo =
+      progressoSalvo?.checkpointEspecialRaioSalvo === true;
+
+      
+    function salvarCheckpointEspecialRaio() {
+
+      // Evitar salvar o checkpoint especial novamente
+      if (checkpointEspecialRaioSalvo) return;
+
+
+
+      if (RaioDeFogo.coracaoEspecialGerado !== true) {
+        return;
+      }
+
+
+      // Só salvar se o checkpoint 3 já foi concluído
+      if (ultimoCheckpoint < 3) return;
+
+      // O chefão precisa estar vivo e em combate
+      if (!RaioDeFogo.ativo || RaioDeFogo.derrotado) return;
+
+      // Ativar quando a vida chegar à metade
+      if (
+        RaioDeFogo.vida <= 0 ||
+        RaioDeFogo.vida > RaioDeFogo.vidaMaxima / 2
+      ) return;
+
+      // Coletar o estado atual da partida
+      const dados = coletarDadosCheckpoint();
+
+      // Manter a numeração do checkpoint 3
+      dados.checkpointNumero = ultimoCheckpoint;
+
+      // Registrar o checkpoint especial
+      dados.checkpointEspecialRaioSalvo = true;
+
+      // Salvar os dados
+      const salvou = Salvamento.salvar(dados);
+
+      if (salvou) {
+        checkpointEspecialRaioSalvo = true;
+
+        console.log(
+          "💛 CHECKPOINT ESPECIAL DO RAIO DE FOGO SALVO!"
+        );
+      }
+    }
+
+
+
 
 
     const telaGameOver =
@@ -810,12 +987,90 @@
     const textoVida =
       document.getElementById("vidaTexto");
 
+      
+    /* =====================================
+      ELEMENTOS DA ENERGIA DO HERÓI
+    ===================================== */
+
+    const preenchimentoEnergia =
+        document.getElementById("energiaPreenchimento");
+
+    const textoEnergia =
+        document.getElementById("energiaTexto");
+
+
     const textoPosicao =
       document.getElementById("posicao");
 
     // Inicializacao.
     AnimacoesHeroi.iniciar();
     Inimigos.iniciar();
+
+    
+    // ==========================================
+    // RESTAURAR CORAÇÕES DO CHECKPOINT
+    // ==========================================
+
+    if (progressoSalvo) {
+
+      
+      if (Array.isArray(progressoSalvo.coracoes)) {
+
+        Inimigos.coracoes = progressoSalvo.coracoes.map(c => ({
+          x: c.x,
+          y: c.y,
+          largura: c.largura,
+          altura: c.altura,
+          cura: c.cura,
+          area: c.area,
+          especial: c.especial === true,
+          coletado: c.coletado === true
+        }));
+
+        
+      }
+
+      if (Array.isArray(progressoSalvo.derrotadosPorArea)) {
+
+        Inimigos.derrotadosPorArea =
+          [...progressoSalvo.derrotadosPorArea];
+      }
+
+      if (Array.isArray(progressoSalvo.coracoesGerados)) {
+
+        Inimigos.coracoesGerados =
+          [...progressoSalvo.coracoesGerados];
+
+          
+        // RESTAURAR CORAÇÃO ESPECIAL DO RAIO DE FOGO
+
+        RaioDeFogo.coracaoEspecialGerado =
+          progressoSalvo.coracaoEspecialRaioGerado === true;
+
+          
+        // RESTAURAR VIDA DO RAIO DE FOGO
+
+        if (Number.isFinite(progressoSalvo.vidaRaioDeFogo)) {
+
+          RaioDeFogo.vida = Math.max(
+            0,
+            Math.min(
+              RaioDeFogo.vidaMaxima,
+              progressoSalvo.vidaRaioDeFogo
+            )
+          );
+
+        }
+
+
+      }
+
+      console.log(
+        "❤️ CORAÇÕES RESTAURADOS DO CHECKPOINT:",
+        Inimigos.coracoes.length
+      );
+    }
+
     
     /* =====================================
       RESTAURAR HERÓI DO CHECKPOINT
@@ -886,6 +1141,42 @@
       // progressivamente os próximos Saqueadores.
       Inimigos.totalDerrotados = totalRestaurado;
 
+      
+      // ==========================================
+      // SINCRONIZAR DERROTAS E CORAÇÕES POR ÁREA
+      // ==========================================
+
+      const contagemRestaurada = [0, 0, 0, 0];
+
+      for (const npc of Inimigos.lista) {
+
+        if (!npc.derrotaContabilizada) continue;
+
+        const area = Math.floor(npc.origemX / 1200);
+
+        if (area >= 0 && area < 4) {
+          contagemRestaurada[area]++;
+        }
+      }
+
+      // Reconstituir a contagem a partir dos inimigos
+      Inimigos.derrotadosPorArea = contagemRestaurada;
+
+      // Preservar corações já gerados nos checkpoints novos
+      // e evitar duplicação nos checkpoints antigos.
+      Inimigos.coracoesGerados = contagemRestaurada.map(
+        (quantidade, area) =>
+          quantidade >= 2 ||
+          Inimigos.coracoesGerados[area] === true
+      );
+
+      console.log(
+        "❤️ CONTAGEM DE CORAÇÕES SINCRONIZADA:",
+        Inimigos.derrotadosPorArea,
+        Inimigos.coracoesGerados
+      );
+
+
       Inimigos.atualizarLiberacao();
 
       console.log(
@@ -928,7 +1219,13 @@
       );
 
 
-      Cutscenes.estado = "combate_saqueadores";
+      Cutscenes.estado =
+        progressoSalvo.checkpointEspecialRaioSalvo === true &&
+        progressoSalvo.raioDeFogoDerrotado !== true
+          ? "combate_raio"
+          : "combate_saqueadores";
+
+
       Cutscenes.ativa = false;
       Cutscenes.tempo = 0;
       Cutscenes.dialogoAtual = 0;
@@ -940,13 +1237,42 @@
 
       RaioDeFogo.carregarSprites();
 
-      RaioDeFogo.x = 4200;
-      RaioDeFogo.y = 870;
-      RaioDeFogo.vida = RaioDeFogo.vidaMaxima;
+      
+      
+    RaioDeFogo.x =
+      progressoSalvo.checkpointEspecialRaioSalvo === true &&
+      Number.isFinite(progressoSalvo.posicaoRaioX)
+        ? progressoSalvo.posicaoRaioX
+        : 4200;
 
-      RaioDeFogo.ativo = false;
+    RaioDeFogo.y =
+      progressoSalvo.checkpointEspecialRaioSalvo === true &&
+      Number.isFinite(progressoSalvo.posicaoRaioY)
+        ? progressoSalvo.posicaoRaioY
+        : 870;
+
+      RaioDeFogo.vida = Number.isFinite(progressoSalvo.vidaRaioDeFogo)
+        ? Math.max(
+            0,
+            Math.min(
+              RaioDeFogo.vidaMaxima,
+              progressoSalvo.vidaRaioDeFogo
+            )
+          )
+        : RaioDeFogo.vidaMaxima;
+
+
+      
+      RaioDeFogo.ativo =
+        progressoSalvo.checkpointEspecialRaioSalvo === true &&
+        progressoSalvo.raioDeFogoDerrotado !== true;
+
       RaioDeFogo.derrotado = false;
-      RaioDeFogo.estado = "aguardando";
+
+      RaioDeFogo.estado = RaioDeFogo.ativo
+        ? "idle"
+        : "aguardando";
+
 
       
       /* =====================================
@@ -1103,6 +1429,23 @@
         ) {
           return;
         }
+
+        
+        /* =====================================
+          BLOQUEIO DA TECLA K — ATAQUE 2
+        ===================================== */
+
+        if (
+            e.code === "KeyK" &&
+            !ataque2EstaPronto()
+        ) {
+            teclas["KeyK"] = false;
+            teclas["k"] = false;
+
+            e.preventDefault();
+            return;
+        }
+
 
         teclas[e.code] = true;
 
@@ -1308,11 +1651,169 @@
             y + 25
         );
 
+        
+        /* =====================================
+          BARRA DE ENERGIA DO RAIO DE FOGO
+        ===================================== */
+
+        // Energia máxima e atual
+        const energiaMaximaChefao = Math.max(
+            1,
+            RaioDeFogo.energiaMaxima || 100
+        );
+
+        const energiaAtualChefao = Math.max(
+            0,
+            Math.min(
+                energiaMaximaChefao,
+                RaioDeFogo.energia || 0
+            )
+        );
+
+        // Porcentagem da energia
+        const percentualEnergiaChefao =
+            energiaAtualChefao / energiaMaximaChefao;
+
+        // Posição abaixo da barra de vida
+        const yEnergia = y + 43;
+        const alturaEnergia = 13;
+
+        // Fundo escuro
+        ctx.fillStyle = "#252525";
+        ctx.fillRect(
+            x,
+            yEnergia,
+            largura,
+            alturaEnergia
+        );
+
+        // Preenchimento laranja
+        ctx.fillStyle = "#f97316";
+        ctx.fillRect(
+            x,
+            yEnergia,
+            largura * percentualEnergiaChefao,
+            alturaEnergia
+        );
+
+        // Borda da barra
+        ctx.strokeStyle = "#fdba74";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            x,
+            yEnergia,
+            largura,
+            alturaEnergia
+        );
+
+        // Texto da energia
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "ENERGIA: " +
+            Math.floor(energiaAtualChefao) +
+            " / " +
+            energiaMaximaChefao,
+            canvas.width / 2,
+            yEnergia + 11
+        );
+
+
         ctx.restore();
 }
 
 
     function atualizarHUD() {
+      
+      /* =====================================
+        ATUALIZAR ENERGIA DO HERÓI
+      ===================================== */
+
+      const energiaMaxima = Math.max(
+          1,
+          Jogador.energiaMaxima || 100
+      );
+
+      const energiaAtual = Math.max(
+          0,
+          Math.min(
+              energiaMaxima,
+              Jogador.energia || 0
+          )
+      );
+
+      const percentualEnergia =
+          (energiaAtual / energiaMaxima) * 100;
+
+      // Atualizar o tamanho da barra azul
+      preenchimentoEnergia.style.width =
+          percentualEnergia + "%";
+
+      // Atualizar a quantidade de energia
+      textoEnergia.textContent =
+          Math.floor(energiaAtual) +
+          " / " +
+          energiaMaxima +
+          " EN";
+
+          
+      /* =====================================
+        ILUMINAÇÃO DO BOTÃO ATAQUE 2
+      ===================================== */
+
+      const botaoAtaque2 =
+          document.getElementById("ataque2");
+
+      // Percentual de energia entre 0 e 1
+      const cargaAtaque2 =
+          energiaAtual / energiaMaxima;
+
+      // Botão escuro com pouca energia
+      // e progressivamente mais claro
+      const brilhoAtaque2 =
+          0.25 + (cargaAtaque2 * 0.75);
+
+      botaoAtaque2.style.filter =
+          "brightness(" + brilhoAtaque2 + ")";
+
+      // Ataque só estará pronto com 100%
+      const ataque2Pronto =
+          energiaAtual >= 20;
+
+      botaoAtaque2.classList.toggle(
+          "pronto",
+          ataque2Pronto
+      );
+
+      botaoAtaque2.classList.toggle(
+          "carregando",
+          !ataque2Pronto
+      );
+
+      
+      /* =====================================
+        BLOQUEAR BOTÃO ATAQUE 2
+      ===================================== */
+
+      // Bloquear o botão enquanto não tiver 100% de energia
+      botaoAtaque2.disabled = !ataque2Pronto;
+
+      // Impedir interações pelo toque
+      botaoAtaque2.style.pointerEvents =
+          ataque2Pronto ? "auto" : "none";
+
+      // Indicar se o ataque está carregando
+      botaoAtaque2.setAttribute(
+          "aria-label",
+          ataque2Pronto
+              ? "Ataque 2 pronto"
+              : "Ataque 2 carregando"
+      );
+
+
+
       const percentual =
         (vidaHeroi.valor /
          vidaHeroi.maxima) * 100;
@@ -1448,6 +1949,20 @@
           Cutscenes.atualizarRetornoRaio(dt);
       }
 
+      
+      /* =====================================
+        RECUPERAÇÃO AUTOMÁTICA DE ENERGIA
+      ===================================== */
+
+      if (
+          !Cutscenes.ativa &&
+          vidaHeroi.valor > 0 &&
+          !gameOver
+      ) {
+          Jogador.atualizarEnergia(dt);
+      }
+
+
 
       // Invencibilidade temporaria.
       vidaHeroi.tempoDano = Math.max(
@@ -1542,6 +2057,21 @@
       ) {
         registrarCheckpoint(3);
       }
+
+      
+      /* =====================================
+        CHECKPOINT ESPECIAL — RAIO DE FOGO
+      ===================================== */
+
+      if (
+        industrialConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        salvarCheckpointEspecialRaio();
+      }
+
 
       /* =====================================
         CHECKPOINT 4 — USINA ELÉTRICA
@@ -1682,6 +2212,9 @@
             Jogador,
             vidaHeroi
           );
+          
+          Inimigos.atualizarCoracoes(Jogador, vidaHeroi);
+
         }
 
         
@@ -1827,11 +2360,9 @@
 
       // Desenhar inimigos.
       if(!Cutscenes.ativa || Cutscenes.estado === "entrada_saqueador" || Cutscenes.estado === "dialogo_saqueador"){
-        Inimigos.desenhar(        
-          ctx,
-          cameraX,
-          cameraY
-        );
+        Inimigos.desenhar(ctx, cameraX, cameraY);
+        Inimigos.desenharCoracoes(ctx, cameraX, cameraY);
+
       }
       
 

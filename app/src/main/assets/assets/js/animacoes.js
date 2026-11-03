@@ -66,6 +66,13 @@ window.AnimacoesHeroi = {
       velocidade: 100
     },
 
+    
+    voo: {
+      total: 8,
+      velocidade: 100
+    },
+
+
     attack: {
       total: 6,
       velocidade: 83
@@ -246,8 +253,13 @@ window.AnimacoesHeroi = {
           );
         };
 
-        imagem.src =
-          `sprites/heroi/${estado}/${estado}_${numero}.png`;
+       
+        if (estado === "voo") {
+          imagem.src = `voo/voo_direita_${numero}.png`;
+        } else {
+          imagem.src = `sprites/heroi/${estado}/${estado}_${numero}.png`;
+        }
+
 
         this.imagens[estado].push(imagem);
       }
@@ -857,18 +869,22 @@ window.AnimacoesHeroi = {
     // ANIMACOES NORMAIS
     // ======================================
 
+    
     let novoEstado = "idle";
 
-    if (!jogador.noChao) {
+    // Disco elétrico ativado no segundo pulo
+    if (jogador.voando && !jogador.noChao) {
+      novoEstado = "voo";
 
+    // Primeiro pulo normal
+    } else if (!jogador.noChao) {
       novoEstado = "jump";
 
-    } else if (
-      Math.abs(jogador.vx) > 0
-    ) {
-
+    // Caminhada
+    } else if (Math.abs(jogador.vx) > 0) {
       novoEstado = "run";
     }
+
 
     this.mudarEstado(novoEstado);
 

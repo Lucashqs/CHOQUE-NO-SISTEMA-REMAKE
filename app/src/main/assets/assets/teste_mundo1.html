@@ -64,6 +64,35 @@
             touch-action: none;
         }
 
+        
+        /* BOTÃO DE PAUSE */
+
+        #btnPause {
+            position: absolute;
+            top: 2%;
+            right: 2%;
+            z-index: 8;
+
+            padding: 8px 14px;
+
+            background: rgba(18, 60, 114, 0.9);
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            font-size: clamp(10px, 1.6cqw, 16px);
+            font-weight: bold;
+
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #btnPause:active {
+            background: #1674bc;
+        }
+
+
         /* VIDA DO HERÓI */
 
         
@@ -102,6 +131,31 @@
             height: 100%;
             background: #22c55e;
         }
+
+        
+        /* =====================================
+          ENERGIA ELÉTRICA DO HERÓI
+        ===================================== */
+
+        #energiaPreenchimento {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                #2563eb,
+                #38bdf8,
+                #a5f3fc
+            );
+            transition: width 0.12s linear;
+        }
+
+        #energiaTexto {
+            display: block;
+            color: #7dd3fc;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
 
         /* CONTROLES SOBRE O ASFALTO */
 
@@ -181,12 +235,157 @@
             border-color: #c084fc;
         }
 
+
+        
+        /* =====================================
+          ATAQUE 2 — CARREGAMENTO DE ENERGIA
+        ===================================== */
+
+        #ataque2 {
+            transition:
+                background 0.15s linear,
+                border-color 0.15s linear,
+                filter 0.15s linear,
+                box-shadow 0.15s linear;
+        }
+
+        #ataque2.carregando {
+            cursor: not-allowed;
+        }
+
+        #ataque2.pronto {
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.8);
+            border-color: #e9d5ff;
+        }
+
+
         /* OCULTAR INFORMAÇÕES DE TESTE */
 
         #posicao,
         .ajuda-teclado {
             display: none;
         }
+
+
+        
+        /* MENU DE PAUSE */
+
+        #menuPause {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+
+            background: rgba(2, 10, 30, 0.94);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        #menuPause[hidden] {
+            display: none;
+        }
+
+        #menuPause h2 {
+            color: #7dd3fc;
+            font-size: clamp(20px, 4cqw, 38px);
+            text-shadow: 0 0 20px #0284c7;
+            margin: 0 0 12px;
+        }
+
+        #menuPause button {
+            width: min(50%, 280px);
+            min-height: 42px;
+
+            background: #123c72;
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+
+            font-size: clamp(11px, 2cqw, 18px);
+            font-weight: bold;
+
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #menuPause button:active {
+            background: #1674bc;
+        }
+
+
+        
+        /* TELA DE ESCOLHA DO NOME */
+
+        #telaEscolhaNome {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            gap: clamp(8px, 2cqw, 18px);
+            padding: 20px;
+
+            background: rgba(2, 10, 30, 0.96);
+            text-align: center;
+        }
+
+        #telaEscolhaNome[hidden] {
+            display: none;
+        }
+
+        #telaEscolhaNome h2 {
+            color: #7dd3fc;
+            font-size: clamp(18px, 3.5cqw, 34px);
+            margin: 0;
+        }
+
+        #telaEscolhaNome p {
+            font-size: clamp(11px, 1.7cqw, 17px);
+            margin: 0;
+        }
+
+        #inputNomeHeroi {
+            width: min(75%, 320px);
+            padding: 12px;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            background: #071b3b;
+            color: white;
+
+            font-size: clamp(12px, 2cqw, 18px);
+            text-align: center;
+            outline: none;
+        }
+
+        #btnConfirmarNome {
+            padding: 12px 25px;
+
+            background: #123c72;
+            color: white;
+
+            border: 2px solid #38bdf8;
+            border-radius: 10px;
+
+            font-size: clamp(12px, 2cqw, 18px);
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #erroNomeHeroi {
+            color: #f87171;
+        }
+
 
         /* TELA DE GAME OVER */
 
@@ -296,6 +495,13 @@
             height="540"
         ></canvas>
 
+        
+        <!-- BOTÃO DE PAUSE -->
+        <button id="btnPause" type="button">
+            ⏸ PAUSE
+        </button>
+
+
         <!-- VIDA DO HERÓI -->
 
         <div class="hud">
@@ -308,7 +514,64 @@
             <span id="vidaTexto">
                 100 / 100 HP
             </span>
+            
+            <!-- ENERGIA ELÉTRICA DO HERÓI -->
+
+            <div style="margin-top: 7px;">
+                <strong style="color: #7dd3fc;">
+                    ⚡ ENERGIA
+                </strong>
+            </div>
+
+            <div class="barra">
+                <div id="energiaPreenchimento"></div>
+            </div>
+
+            <span id="energiaTexto">100 / 100 EN</span>
+
         </div>
+
+
+        <!-- MENU DE PAUSE -->
+        <div id="menuPause" hidden>
+
+            <h2>JOGO PAUSADO</h2>
+
+            <button id="btnContinuarJogo" type="button">
+                CONTINUAR JOGO
+            </button>
+
+            <button id="btnVoltarMenu" type="button">
+                VOLTAR AO MENU
+            </button>
+
+        </div>
+
+
+        
+        <!-- TELA DE ESCOLHA DO NOME -->
+        <div id="telaEscolhaNome" hidden>
+            <h2>QUAL É O SEU NOME, HERÓI?</h2>
+
+            <p>Como devemos chamar você nesta aventura?</p>
+
+            <input
+                type="text"
+                id="inputNomeHeroi"
+                placeholder="Digite seu nome"
+                maxlength="20"
+                autocomplete="off"
+            >
+
+            <button id="btnConfirmarNome" type="button">
+                CONFIRMAR NOME
+            </button>
+
+            <p id="erroNomeHeroi" hidden>
+                Digite um nome para continuar!
+            </p>
+        </div>
+
 
         <!-- GAME OVER -->
 
@@ -366,6 +629,9 @@
   <script src="js/chefao_raio_de_fogo.js"></script>
   <script src="js/cutscenes.js"></script>
   <script src="js/projeteis.js"></script>
+  <!-- SISTEMA DE CHECKPOINTS -->
+  <script src="js/salvamento.js"></script>
+
 
   <script>
     const canvas =
@@ -375,8 +641,147 @@
 
     const teclas = {};
 
-    let cameraX = 0;
+    
+    /* =====================================
+      VERIFICAR SE O ATAQUE 2 ESTÁ PRONTO
+    ===================================== */
+
+    
+    /* =====================================
+      ATAQUE 2 — ENERGIA MÍNIMA
+    ===================================== */
+
+    function ataque2EstaPronto() {
+
+        if (typeof Jogador === "undefined") {
+            return false;
+        }
+
+        return Jogador.energia >= 20;
+    }
+
+
+
+    
+    /* =====================================
+       MÚSICA DA FASE 1
+    ===================================== */
+
+    const musicaFase = new Audio("audio/musica_abertura.mp3");
+
+    musicaFase.loop = true;
+    musicaFase.volume = 0.5;
+
+    function iniciarMusicaFase() {
+        musicaFase.play().catch(erro => {
+            console.log("Áudio aguardando interação:", erro);
+        });
+    }
+
+
+    
+    /* SISTEMA DE PAUSE */
+
+    let jogoPausado = false;
+
+    const btnPause = document.getElementById("btnPause");
+    const menuPause = document.getElementById("menuPause");
+    const btnContinuarJogo = document.getElementById("btnContinuarJogo");
+    const btnVoltarMenu = document.getElementById("btnVoltarMenu");
+
+    function alterarPausa(pausar) {
+        if (gameOver) return;
+
+        jogoPausado = pausar;
+        menuPause.hidden = !pausar;
+
+        // Soltar todos os controles pressionados
+        Object.keys(teclas).forEach(
+            tecla => teclas[tecla] = false
+        );
+    }
+    
+    btnPause.addEventListener("click", () => {
+        if (aguardandoNome) return;
+        alterarPausa(true);
+    });
+
+
+    btnContinuarJogo.addEventListener("click", () => {
+        ultimoFrame = performance.now();
+        alterarPausa(false);
+    });
+
+    btnVoltarMenu.addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+
+
+    
+    /* =====================================
+      IDENTIFICAR PARTIDA SALVA
+    ===================================== */
+
+    const parametrosJogo =
+      new URLSearchParams(window.location.search);
+
+    const continuarPartida =
+      parametrosJogo.get("continuar") === "1";
+
+    const progressoSalvo =
+      continuarPartida ? Salvamento.carregar() : null;
+
+      
+    /* SISTEMA DE NOME DO HERÓI */
+
+    const telaEscolhaNome =
+        document.getElementById("telaEscolhaNome");
+
+    const inputNomeHeroi =
+        document.getElementById("inputNomeHeroi");
+
+    const btnConfirmarNome =
+        document.getElementById("btnConfirmarNome");
+
+    const erroNomeHeroi =
+        document.getElementById("erroNomeHeroi");
+
+    // Recuperar o nome de uma partida salva
+    let nomeHeroi = progressoSalvo?.nomeHeroi || "";
+
+    
+    // Disponibilizar o nome para as cutscenes
+    window.nomeHeroiPersonalizado = nomeHeroi || "HERÓI";
+
+
+    // Impedir que o jogo comece antes da escolha
+    let aguardandoNome = !progressoSalvo;
+
+    if (aguardandoNome) {
+
+      telaEscolhaNome.hidden = false;
+    }
+
+
+    console.log(
+      "Modo de jogo:",
+      progressoSalvo ? "CONTINUAR" : "NOVA PARTIDA"
+    );
+
+
+    
+    let cameraX = progressoSalvo
+      ? Math.max(
+          0,
+          Math.min(
+            Mundo1.largura - canvas.width,
+            progressoSalvo.checkpointX - canvas.width * 0.35
+          )
+        )
+      : 0;
+
     let cameraY = 560;
+
     let ultimoFrame = performance.now();
 
     let fireballDisparada = false;
@@ -398,6 +803,178 @@
       tempoDano: 0
     };
 
+    
+    /* =====================================
+      CHOQUE NO SISTEMA REMAKE
+      DADOS DO CHECKPOINT
+    ===================================== */
+
+    function coletarDadosCheckpoint() {
+
+      return {
+
+        // Mundo atual
+        mundo: 1,
+        nomeHeroi: nomeHeroi,
+
+        // Posição do herói
+        checkpointX: Jogador.x,
+        checkpointY: Jogador.y,
+
+        // Vida do herói
+        vida: vidaHeroi.valor,
+
+        
+        // ESTADO DOS CORAÇÕES DE VIDA
+        
+        coracoes: Inimigos.coracoes.map(coracao => ({
+          x: coracao.x,
+          y: coracao.y,
+          largura: coracao.largura,
+          altura: coracao.altura,
+          cura: coracao.cura,
+          area: coracao.area,
+          especial: coracao.especial === true,
+          coletado: coracao.coletado
+        })),
+
+
+        // CONTAGEM DE DERROTAS POR ÁREA
+        derrotadosPorArea: [...Inimigos.derrotadosPorArea],
+
+        // ÁREAS QUE JÁ LIBERARAM CORAÇÃO
+        coracoesGerados: [...Inimigos.coracoesGerados],
+
+        
+        coracaoEspecialRaioGerado: RaioDeFogo.coracaoEspecialGerado,
+
+
+
+        // Saqueadores derrotados
+        
+        saqueadoresDerrotados: Inimigos.lista
+          .filter(npc => npc.derrotaContabilizada === true)
+          .map(npc => npc.id),
+
+        // Progresso das regiões
+        avenidaConcluida:
+          Inimigos.avenidaCentralConcluida(),
+
+        distritoConcluido:
+          Inimigos.distritoComercialConcluido(),
+
+        industrialConcluido:
+          Inimigos.bairroIndustrialConcluido(),
+
+        
+        // Situação do primeiro chefão
+        raioDeFogoDerrotado:
+          RaioDeFogo.derrotado === true,
+
+        // Vida atual do Raio de Fogo
+        
+        vidaRaioDeFogo: RaioDeFogo.vida,
+        posicaoRaioX: RaioDeFogo.x,
+        posicaoRaioY: RaioDeFogo.y
+
+
+
+      };
+
+    }
+
+    
+    /* =====================================
+      CONTROLE DOS CHECKPOINTS
+    ===================================== */
+
+    // Identificar o último checkpoint salvo
+    let ultimoCheckpoint = progressoSalvo
+      ? (progressoSalvo.checkpointNumero || 0)
+      : 0;
+
+    // Registrar um novo checkpoint
+    function registrarCheckpoint(numero) {
+
+      // Evitar salvar novamente o mesmo checkpoint
+      if (numero <= ultimoCheckpoint) {
+        return;
+      }
+
+      const dados = coletarDadosCheckpoint();
+
+      dados.checkpointNumero = numero;
+
+      const salvou = Salvamento.salvar(dados);
+
+      if (salvou) {
+        ultimoCheckpoint = numero;
+
+        console.log(
+          "CHECKPOINT " + numero + " SALVO!"
+        );
+      }
+    }
+
+    
+    /* =====================================
+      CHECKPOINT ESPECIAL — RAIO DE FOGO
+    ===================================== */
+
+    // Controla se o checkpoint especial já foi salvo
+    let checkpointEspecialRaioSalvo =
+      progressoSalvo?.checkpointEspecialRaioSalvo === true;
+
+      
+    function salvarCheckpointEspecialRaio() {
+
+      // Evitar salvar o checkpoint especial novamente
+      if (checkpointEspecialRaioSalvo) return;
+
+
+
+      if (RaioDeFogo.coracaoEspecialGerado !== true) {
+        return;
+      }
+
+
+      // Só salvar se o checkpoint 3 já foi concluído
+      if (ultimoCheckpoint < 3) return;
+
+      // O chefão precisa estar vivo e em combate
+      if (!RaioDeFogo.ativo || RaioDeFogo.derrotado) return;
+
+      // Ativar quando a vida chegar à metade
+      if (
+        RaioDeFogo.vida <= 0 ||
+        RaioDeFogo.vida > RaioDeFogo.vidaMaxima / 2
+      ) return;
+
+      // Coletar o estado atual da partida
+      const dados = coletarDadosCheckpoint();
+
+      // Manter a numeração do checkpoint 3
+      dados.checkpointNumero = ultimoCheckpoint;
+
+      // Registrar o checkpoint especial
+      dados.checkpointEspecialRaioSalvo = true;
+
+      // Salvar os dados
+      const salvou = Salvamento.salvar(dados);
+
+      if (salvou) {
+        checkpointEspecialRaioSalvo = true;
+
+        console.log(
+          "💛 CHECKPOINT ESPECIAL DO RAIO DE FOGO SALVO!"
+        );
+      }
+    }
+
+
+
+
+
     const telaGameOver =
       document.getElementById("gameOver");
 
@@ -410,16 +987,339 @@
     const textoVida =
       document.getElementById("vidaTexto");
 
+      
+    /* =====================================
+      ELEMENTOS DA ENERGIA DO HERÓI
+    ===================================== */
+
+    const preenchimentoEnergia =
+        document.getElementById("energiaPreenchimento");
+
+    const textoEnergia =
+        document.getElementById("energiaTexto");
+
+
     const textoPosicao =
       document.getElementById("posicao");
 
     // Inicializacao.
     AnimacoesHeroi.iniciar();
     Inimigos.iniciar();
-    // INICIAR CUTSCENE DO MUNDO!
-    Cutscenes.iniciar("intro");
-    // Preparar a entrada do Raio de Fogo
-    Cutscenes.iniciarEntradaRaio();
+
+    
+    // ==========================================
+    // RESTAURAR CORAÇÕES DO CHECKPOINT
+    // ==========================================
+
+    if (progressoSalvo) {
+
+      
+      if (Array.isArray(progressoSalvo.coracoes)) {
+
+        Inimigos.coracoes = progressoSalvo.coracoes.map(c => ({
+          x: c.x,
+          y: c.y,
+          largura: c.largura,
+          altura: c.altura,
+          cura: c.cura,
+          area: c.area,
+          especial: c.especial === true,
+          coletado: c.coletado === true
+        }));
+
+        
+      }
+
+      if (Array.isArray(progressoSalvo.derrotadosPorArea)) {
+
+        Inimigos.derrotadosPorArea =
+          [...progressoSalvo.derrotadosPorArea];
+      }
+
+      if (Array.isArray(progressoSalvo.coracoesGerados)) {
+
+        Inimigos.coracoesGerados =
+          [...progressoSalvo.coracoesGerados];
+
+          
+        // RESTAURAR CORAÇÃO ESPECIAL DO RAIO DE FOGO
+
+        RaioDeFogo.coracaoEspecialGerado =
+          progressoSalvo.coracaoEspecialRaioGerado === true;
+
+          
+        // RESTAURAR VIDA DO RAIO DE FOGO
+
+        if (Number.isFinite(progressoSalvo.vidaRaioDeFogo)) {
+
+          RaioDeFogo.vida = Math.max(
+            0,
+            Math.min(
+              RaioDeFogo.vidaMaxima,
+              progressoSalvo.vidaRaioDeFogo
+            )
+          );
+
+        }
+
+
+      }
+
+      console.log(
+        "❤️ CORAÇÕES RESTAURADOS DO CHECKPOINT:",
+        Inimigos.coracoes.length
+      );
+    }
+
+    
+    /* =====================================
+      RESTAURAR HERÓI DO CHECKPOINT
+    ===================================== */
+
+    if (progressoSalvo) {
+
+      // Recuperar posição
+      Jogador.x = progressoSalvo.checkpointX;
+      Jogador.y = progressoSalvo.checkpointY;
+
+      // Recuperar vida
+      if (Number.isFinite(progressoSalvo.vida)) {
+        vidaHeroi.valor = Math.max(
+          1,
+          Math.min(vidaHeroi.maxima, progressoSalvo.vida)
+        );
+      }
+
+      // Reiniciar velocidade e movimento
+      Jogador.vx = 0;
+      Jogador.vy = 0;
+      Jogador.tempoImpacto = 0;
+      Jogador.velocidadeImpacto = 0;
+      Jogador.subindoEscada = false;
+      Jogador.escadaAtual = null;
+
+      console.log(
+        "HERÓI RESTAURADO:",
+        Jogador.x,
+        Jogador.y,
+        vidaHeroi.valor
+      );
+    }
+
+    
+    /* =====================================
+      RESTAURAR SAQUEADORES DERROTADOS
+    ===================================== */
+
+    if (progressoSalvo) {
+
+      const idsDerrotados = new Set(
+        Array.isArray(progressoSalvo.saqueadoresDerrotados)
+          ? progressoSalvo.saqueadoresDerrotados
+          : []
+      );
+
+      let totalRestaurado = 0;
+
+      Inimigos.lista.forEach(npc => {
+
+        if (!idsDerrotados.has(npc.id)) {
+          return;
+        }
+
+        npc.vida = 0;
+        npc.vivo = false;
+        npc.derrotado = true;
+        npc.derrotaContabilizada = true;
+        npc.estado = "death";
+        npc.liberado = true;
+
+        totalRestaurado++;
+      });
+
+      // Restaurar a contagem utilizada para liberar
+      // progressivamente os próximos Saqueadores.
+      Inimigos.totalDerrotados = totalRestaurado;
+
+      
+      // ==========================================
+      // SINCRONIZAR DERROTAS E CORAÇÕES POR ÁREA
+      // ==========================================
+
+      const contagemRestaurada = [0, 0, 0, 0];
+
+      for (const npc of Inimigos.lista) {
+
+        if (!npc.derrotaContabilizada) continue;
+
+        const area = Math.floor(npc.origemX / 1200);
+
+        if (area >= 0 && area < 4) {
+          contagemRestaurada[area]++;
+        }
+      }
+
+      // Reconstituir a contagem a partir dos inimigos
+      Inimigos.derrotadosPorArea = contagemRestaurada;
+
+      // Preservar corações já gerados nos checkpoints novos
+      // e evitar duplicação nos checkpoints antigos.
+      Inimigos.coracoesGerados = contagemRestaurada.map(
+        (quantidade, area) =>
+          quantidade >= 2 ||
+          Inimigos.coracoesGerados[area] === true
+      );
+
+      console.log(
+        "❤️ CONTAGEM DE CORAÇÕES SINCRONIZADA:",
+        Inimigos.derrotadosPorArea,
+        Inimigos.coracoesGerados
+      );
+
+
+      Inimigos.atualizarLiberacao();
+
+      console.log(
+        "SAQUEADORES RESTAURADOS:",
+        totalRestaurado
+      );
+    }
+
+    
+    /* =====================================
+      INICIALIZAÇÃO DAS CUTSCENES
+    ===================================== */
+
+    if (!progressoSalvo) {
+
+      // NOVA PARTIDA
+      // A cutscene será iniciada após confirmar o nome.
+      
+
+    } else {
+
+      // CONTINUAR PARTIDA
+
+      
+      // Iniciar a música ao continuar a partida
+      iniciarMusicaFase();
+
+      // Caso o navegador bloqueie o áudio,
+      // iniciar após a primeira interação do jogador
+      document.addEventListener(
+          "pointerdown",
+          iniciarMusicaFase,
+          { once: true }
+      );
+
+      document.addEventListener(
+          "keydown",
+          iniciarMusicaFase,
+          { once: true }
+      );
+
+
+      Cutscenes.estado =
+        progressoSalvo.checkpointEspecialRaioSalvo === true &&
+        progressoSalvo.raioDeFogoDerrotado !== true
+          ? "combate_raio"
+          : "combate_saqueadores";
+
+
+      Cutscenes.ativa = false;
+      Cutscenes.tempo = 0;
+      Cutscenes.dialogoAtual = 0;
+
+      
+      /* =====================================
+        RESTAURAR ESTADO DO RAIO DE FOGO
+      ===================================== */
+
+      RaioDeFogo.carregarSprites();
+
+      
+      
+    RaioDeFogo.x =
+      progressoSalvo.checkpointEspecialRaioSalvo === true &&
+      Number.isFinite(progressoSalvo.posicaoRaioX)
+        ? progressoSalvo.posicaoRaioX
+        : 4200;
+
+    RaioDeFogo.y =
+      progressoSalvo.checkpointEspecialRaioSalvo === true &&
+      Number.isFinite(progressoSalvo.posicaoRaioY)
+        ? progressoSalvo.posicaoRaioY
+        : 870;
+
+      RaioDeFogo.vida = Number.isFinite(progressoSalvo.vidaRaioDeFogo)
+        ? Math.max(
+            0,
+            Math.min(
+              RaioDeFogo.vidaMaxima,
+              progressoSalvo.vidaRaioDeFogo
+            )
+          )
+        : RaioDeFogo.vidaMaxima;
+
+
+      
+      RaioDeFogo.ativo =
+        progressoSalvo.checkpointEspecialRaioSalvo === true &&
+        progressoSalvo.raioDeFogoDerrotado !== true;
+
+      RaioDeFogo.derrotado = false;
+
+      RaioDeFogo.estado = RaioDeFogo.ativo
+        ? "idle"
+        : "aguardando";
+
+
+      
+      /* =====================================
+        PREPARAR RETORNO CINEMATOGRÁFICO
+      ===================================== */
+
+      Cutscenes.retornoRaioPreparado = false;
+      Cutscenes.raioChegou = false;
+
+      RaioDeFogo.frame = 0;
+      RaioDeFogo.tempoAnimacao = 0;
+      RaioDeFogo.frameDerrota = 0;
+      RaioDeFogo.tempoDerrota = 0;
+
+      RaioDeFogo.animacaoDerrotaFinalizada = false;
+      RaioDeFogo.cutsceneDerrotaIniciada = false;
+
+
+      RaioDeFogo.atacando = false;
+      RaioDeFogo.movendo = false;
+      RaioDeFogo.heroiDetectado = false;
+      RaioDeFogo.projeteis = [];
+
+      if (progressoSalvo.raioDeFogoDerrotado === true) {
+
+        RaioDeFogo.vida = 0;
+        RaioDeFogo.derrotado = true;
+        RaioDeFogo.estado = "derrota";
+        RaioDeFogo.animacaoDerrotaFinalizada = true;
+        RaioDeFogo.cutsceneDerrotaIniciada = true;
+
+        console.log("RAIO DE FOGO JÁ DERROTADO!");
+
+      } else {
+
+        console.log("RAIO DE FOGO AGUARDANDO BATALHA!");
+
+      }
+
+
+      console.log(
+        "CHECKPOINT CARREGADO — HERÓI LIBERADO!"
+      );
+
+    }
+
+
 
 
     const botoes = {
@@ -448,7 +1348,8 @@
 
               if (
                 vidaHeroi.valor <= 0 ||
-                gameOver
+                gameOver ||
+                jogoPausado
               ) {
                 return;
               }
@@ -473,7 +1374,8 @@
 
             if (
               vidaHeroi.valor <= 0 ||
-              gameOver
+              gameOver ||
+              jogoPausado
             ) {
               return;
             }
@@ -528,6 +1430,23 @@
           return;
         }
 
+        
+        /* =====================================
+          BLOQUEIO DA TECLA K — ATAQUE 2
+        ===================================== */
+
+        if (
+            e.code === "KeyK" &&
+            !ataque2EstaPronto()
+        ) {
+            teclas["KeyK"] = false;
+            teclas["k"] = false;
+
+            e.preventDefault();
+            return;
+        }
+
+
         teclas[e.code] = true;
 
         if (e.key.length === 1) {
@@ -578,6 +1497,11 @@
         // CONTROLE DOS DIÁLOGOS
     canvas.addEventListener("pointerdown", (evento) => {
 
+
+      
+      if (jogoPausado) return;
+
+
         console.log("Canvas recebeu clique!");
 
         if (
@@ -597,6 +1521,57 @@
 
     });
 
+
+    /* CONFIRMAR NOME DO HERÓI */
+
+    btnConfirmarNome.addEventListener("click", () => {
+
+        const nomeDigitado = inputNomeHeroi.value.trim();
+
+        if (!nomeDigitado) {
+            erroNomeHeroi.hidden = false;
+            return;
+        }
+
+        nomeHeroi = nomeDigitado;
+
+        
+        // Atualizar o nome exibido nos diálogos
+        window.nomeHeroiPersonalizado = nomeHeroi;
+
+        aguardandoNome = false;
+
+        
+        // Atualizar o nome em um checkpoint já existente
+        const saveExistente = Salvamento.carregar();
+
+        if (saveExistente) {
+            Salvamento.salvar({
+                ...saveExistente,
+                nomeHeroi: nomeHeroi
+            });
+        }
+
+
+        erroNomeHeroi.hidden = true;
+        telaEscolhaNome.hidden = true;
+
+        // Limpar controles antes de iniciar
+        Object.keys(teclas).forEach(
+            tecla => teclas[tecla] = false
+        );
+
+        // Iniciar a primeira cutscene
+        Cutscenes.iniciar("intro");
+        Cutscenes.iniciarEntradaRaio();
+
+        
+        // Iniciar música da fase 1
+        iniciarMusicaFase();
+
+
+        console.log("NOME DO HERÓI:", nomeHeroi);
+    });
 
 
     // Reiniciar partida.
@@ -676,11 +1651,169 @@
             y + 25
         );
 
+        
+        /* =====================================
+          BARRA DE ENERGIA DO RAIO DE FOGO
+        ===================================== */
+
+        // Energia máxima e atual
+        const energiaMaximaChefao = Math.max(
+            1,
+            RaioDeFogo.energiaMaxima || 100
+        );
+
+        const energiaAtualChefao = Math.max(
+            0,
+            Math.min(
+                energiaMaximaChefao,
+                RaioDeFogo.energia || 0
+            )
+        );
+
+        // Porcentagem da energia
+        const percentualEnergiaChefao =
+            energiaAtualChefao / energiaMaximaChefao;
+
+        // Posição abaixo da barra de vida
+        const yEnergia = y + 43;
+        const alturaEnergia = 13;
+
+        // Fundo escuro
+        ctx.fillStyle = "#252525";
+        ctx.fillRect(
+            x,
+            yEnergia,
+            largura,
+            alturaEnergia
+        );
+
+        // Preenchimento laranja
+        ctx.fillStyle = "#f97316";
+        ctx.fillRect(
+            x,
+            yEnergia,
+            largura * percentualEnergiaChefao,
+            alturaEnergia
+        );
+
+        // Borda da barra
+        ctx.strokeStyle = "#fdba74";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            x,
+            yEnergia,
+            largura,
+            alturaEnergia
+        );
+
+        // Texto da energia
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "ENERGIA: " +
+            Math.floor(energiaAtualChefao) +
+            " / " +
+            energiaMaximaChefao,
+            canvas.width / 2,
+            yEnergia + 11
+        );
+
+
         ctx.restore();
 }
 
 
     function atualizarHUD() {
+      
+      /* =====================================
+        ATUALIZAR ENERGIA DO HERÓI
+      ===================================== */
+
+      const energiaMaxima = Math.max(
+          1,
+          Jogador.energiaMaxima || 100
+      );
+
+      const energiaAtual = Math.max(
+          0,
+          Math.min(
+              energiaMaxima,
+              Jogador.energia || 0
+          )
+      );
+
+      const percentualEnergia =
+          (energiaAtual / energiaMaxima) * 100;
+
+      // Atualizar o tamanho da barra azul
+      preenchimentoEnergia.style.width =
+          percentualEnergia + "%";
+
+      // Atualizar a quantidade de energia
+      textoEnergia.textContent =
+          Math.floor(energiaAtual) +
+          " / " +
+          energiaMaxima +
+          " EN";
+
+          
+      /* =====================================
+        ILUMINAÇÃO DO BOTÃO ATAQUE 2
+      ===================================== */
+
+      const botaoAtaque2 =
+          document.getElementById("ataque2");
+
+      // Percentual de energia entre 0 e 1
+      const cargaAtaque2 =
+          energiaAtual / energiaMaxima;
+
+      // Botão escuro com pouca energia
+      // e progressivamente mais claro
+      const brilhoAtaque2 =
+          0.25 + (cargaAtaque2 * 0.75);
+
+      botaoAtaque2.style.filter =
+          "brightness(" + brilhoAtaque2 + ")";
+
+      // Ataque só estará pronto com 100%
+      const ataque2Pronto =
+          energiaAtual >= 20;
+
+      botaoAtaque2.classList.toggle(
+          "pronto",
+          ataque2Pronto
+      );
+
+      botaoAtaque2.classList.toggle(
+          "carregando",
+          !ataque2Pronto
+      );
+
+      
+      /* =====================================
+        BLOQUEAR BOTÃO ATAQUE 2
+      ===================================== */
+
+      // Bloquear o botão enquanto não tiver 100% de energia
+      botaoAtaque2.disabled = !ataque2Pronto;
+
+      // Impedir interações pelo toque
+      botaoAtaque2.style.pointerEvents =
+          ataque2Pronto ? "auto" : "none";
+
+      // Indicar se o ataque está carregando
+      botaoAtaque2.setAttribute(
+          "aria-label",
+          ataque2Pronto
+              ? "Ataque 2 pronto"
+              : "Ataque 2 carregando"
+      );
+
+
+
       const percentual =
         (vidaHeroi.valor /
          vidaHeroi.maxima) * 100;
@@ -759,6 +1892,16 @@
 
     function atualizar() {
 
+
+      
+      // CONGELAR A PARTIDA DURANTE O PAUSE
+      if (jogoPausado || aguardandoNome) {
+          ultimoFrame = performance.now();
+          requestAnimationFrame(atualizar);
+          return;
+      }
+
+
       
       // OCULTAR CONTROLES DURANTE AS CUTSCENES
       const controlesTela = document.querySelector(".controles");
@@ -806,6 +1949,20 @@
           Cutscenes.atualizarRetornoRaio(dt);
       }
 
+      
+      /* =====================================
+        RECUPERAÇÃO AUTOMÁTICA DE ENERGIA
+      ===================================== */
+
+      if (
+          !Cutscenes.ativa &&
+          vidaHeroi.valor > 0 &&
+          !gameOver
+      ) {
+          Jogador.atualizarEnergia(dt);
+      }
+
+
 
       // Invencibilidade temporaria.
       vidaHeroi.tempoDano = Math.max(
@@ -833,6 +1990,21 @@
       const avenidaConcluida =
         Inimigos.avenidaCentralConcluida();
 
+      
+      /* =====================================
+        CHECKPOINT 1 — AVENIDA CENTRAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(1);
+      }
+  
+
       // Centro do heroi na tela.
       const alvoX =
         Jogador.x +
@@ -851,8 +2023,73 @@
       const distritoConcluido =
         Inimigos.distritoComercialConcluido();
 
+        
+      /* =====================================
+        CHECKPOINT 2 — DISTRITO COMERCIAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(2);
+      }
+
+
       const industrialConcluido =
         Inimigos.bairroIndustrialConcluido();
+        
+      
+      /* =====================================
+        CHECKPOINT 3 — BAIRRO INDUSTRIAL
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        industrialConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(3);
+      }
+
+      
+      /* =====================================
+        CHECKPOINT ESPECIAL — RAIO DE FOGO
+      ===================================== */
+
+      if (
+        industrialConcluido &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        salvarCheckpointEspecialRaio();
+      }
+
+
+      /* =====================================
+        CHECKPOINT 4 — USINA ELÉTRICA
+      ===================================== */
+
+      if (
+        avenidaConcluida &&
+        distritoConcluido &&
+        industrialConcluido &&
+        RaioDeFogo.derrotado === true &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0 &&
+        !gameOver
+      ) {
+        registrarCheckpoint(4);
+      }
+
+
 
       // Inicialmente, apenas a Avenida Central
       let limiteRegiao = 1200;
@@ -975,9 +2212,17 @@
             Jogador,
             vidaHeroi
           );
+          
+          Inimigos.atualizarCoracoes(Jogador, vidaHeroi);
+
         }
 
         
+
+       
+        /* =====================================
+          INICIAR BATALHA FINAL
+        ===================================== */
 
         if (
           !Cutscenes.ativa &&
@@ -985,12 +2230,21 @@
           !RaioDeFogo.derrotado &&
           Inimigos.podeIniciarChefao()
         ) {
+
+          // Reiniciar o controle da entrada cinematográfica
+          Cutscenes.retornoRaioPreparado = false;
+
+          // Preparar o chefão para a batalha
           RaioDeFogo.iniciar();
 
+          // Iniciar a cena de retorno
           Cutscenes.iniciar("retorno_raio");
 
-          console.log("CUTSCENE DO RETORNO DO RAIO DE FOGO INICIADA!");
+          console.log(
+            "CUTSCENE DO RETORNO DO RAIO DE FOGO INICIADA!"
+          );
         }
+
 
         // Atualizar o chefão
         if (!Cutscenes.ativa){
@@ -1106,11 +2360,9 @@
 
       // Desenhar inimigos.
       if(!Cutscenes.ativa || Cutscenes.estado === "entrada_saqueador" || Cutscenes.estado === "dialogo_saqueador"){
-        Inimigos.desenhar(        
-          ctx,
-          cameraX,
-          cameraY
-        );
+        Inimigos.desenhar(ctx, cameraX, cameraY);
+        Inimigos.desenharCoracoes(ctx, cameraX, cameraY);
+
       }
       
 

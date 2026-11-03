@@ -83,6 +83,34 @@ window.Inimigos = {
 
   quantidadeInicial: 2,
   totalDerrotados: 0,
+  // SISTEMA DE CORAÇÕES
+  derrotadosPorArea: [0, 0, 0, 0],
+  coracoesGerados: [false, false, false, false],
+
+  
+  // CORAÇÕES DISPONÍVEIS NO CENÁRIO
+  coracoes: [],
+
+  // CRIAR CORAÇÃO NO LOCAL DA DERROTA
+  criarCoracao(npc, area) {
+
+      const tamanho = 28;
+
+      this.coracoes.push({
+          x: npc.x + (npc.largura - tamanho) / 2,
+          y: npc.y + npc.altura - tamanho,
+          largura: tamanho,
+          altura: tamanho,
+          cura: 25,
+          area: area,
+          coletado: false
+      });
+
+      console.log(
+          `❤️ Coração criado na área ${area + 1}!`
+      );
+  },
+
 
   // Margem de renderizacao fora da tela.
   margemRenderizacao: 150,
@@ -220,6 +248,11 @@ window.Inimigos = {
     this.lista = [];
     this.proximoId = 1;
     this.totalDerrotados = 0;
+    
+    this.derrotadosPorArea = [0, 0, 0, 0];
+    this.coracoesGerados = [false, false, false, false];
+    this.coracoes = [];
+
 
     this.carregarSprites();
 
@@ -813,11 +846,43 @@ window.Inimigos = {
         !npc.derrotaContabilizada
       ) {
 
+        
         npc.derrotaContabilizada = true;
 
         this.totalDerrotados++;
 
+        // IDENTIFICAR A ÁREA DO SAQUEADOR
+        const area = Math.floor(npc.origemX / 1200);
+
+        // CONTABILIZAR DERROTAS POR ÁREA
+        if (area >= 0 && area < 4) {
+
+            this.derrotadosPorArea[area]++;
+
+            console.log(
+                `ÁREA ${area + 1}: ${this.derrotadosPorArea[area]} saqueadores derrotados`
+            );
+
+            // SEGUNDO SAQUEADOR DERROTADO
+            if (
+                this.derrotadosPorArea[area] === 2 &&
+                !this.coracoesGerados[area]
+            ) {
+
+                this.coracoesGerados[area] = true;
+                this.criarCoracao(npc, area);
+
+                console.log(
+                    `❤️ CORAÇÃO LIBERADO NA ÁREA ${area + 1}!`
+                );
+
+                // No próximo passo criaremos o coração
+                // na posição deste saqueador.
+            }
+        }
+
         this.atualizarLiberacao();
+
 
         console.log(
           "SAQUEADORES DERROTADOS:",
@@ -1376,6 +1441,107 @@ window.Inimigos = {
     }
 
   },
+
+  
+  // ==========================================
+  // COLETAR CORAÇÕES E RECUPERAR VIDA
+  // ==========================================
+
+  atualizarCoracoes(jogador, vidaHeroi) {
+
+    if (!jogador || !vidaHeroi) return;
+    if (vidaHeroi.valor <= 0) return;
+
+    for (const coracao of this.coracoes) {
+
+      if (coracao.coletado) continue;
+
+      const colisao =
+        jogador.x < coracao.x + coracao.largura &&
+        jogador.x + jogador.largura > coracao.x &&
+        jogador.y < coracao.y + coracao.altura &&
+        jogador.y + jogador.altura > coracao.y;
+
+      if (!colisao) continue;
+
+      // Recuperar 25 HP sem ultrapassar o máximo
+      const vidaMaxima = vidaHeroi.maxima;
+
+      if (!Number.isFinite(vidaMaxima)) {
+        console.warn("Vida máxima do herói não encontrada.");
+        continue;
+      }
+
+      const vidaAnterior = vidaHeroi.valor;
+
+      vidaHeroi.valor = Math.min(
+        vidaMaxima,
+        vidaHeroi.valor + coracao.cura
+      );
+
+      coracao.coletado = true;
+
+      console.log(
+        `❤️ Coração coletado! Vida: ${vidaAnterior} → ${vidaHeroi.valor}`
+      );
+    }
+  },
+
+
+  // ==========================================
+  // DESENHAR CORAÇÕES DE VIDA
+  // ==========================================
+
+  desenharCoracoes(ctx, cameraX = 0, cameraY = 0) {
+
+    for (const coracao of this.coracoes) {
+
+      if (coracao.coletado) continue;
+
+      const x = coracao.x - cameraX;
+      const y = coracao.y - cameraY;
+
+      const tamanho = coracao.largura;
+
+      ctx.save();
+
+      // Brilho vermelho
+      
+      ctx.shadowColor = coracao.especial ? "#ffd700" : "#ff0000";
+
+      ctx.shadowBlur = 15;
+
+      // Formato de coração
+      
+      ctx.fillStyle = coracao.especial ? "#ffd700" : "#ff1744";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+
+      ctx.moveTo(x + tamanho / 2, y + tamanho);
+
+      ctx.bezierCurveTo(
+        x - tamanho * 0.35, y + tamanho * 0.45,
+        x, y - tamanho * 0.2,
+        x + tamanho / 2, y + tamanho * 0.25
+      );
+
+      ctx.bezierCurveTo(
+        x + tamanho, y - tamanho * 0.2,
+        x + tamanho * 1.35, y + tamanho * 0.45,
+        x + tamanho / 2, y + tamanho
+      );
+
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  },
+
+
 
   // ==========================================
   // CONTAR INIMIGOS VIVOS E LIBERADOS

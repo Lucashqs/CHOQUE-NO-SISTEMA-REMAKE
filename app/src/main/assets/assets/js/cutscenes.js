@@ -140,7 +140,8 @@ window.Cutscenes = {
 
         {
             personagem: "RAIO DE FOGO",
-            texto: "Hahaha! Então você é o tal herói elétrico?"
+            texto: "Hahaha! Então você é o {nome}, o tal herói elétrico?"
+
         },
 
         {
@@ -170,7 +171,7 @@ window.Cutscenes = {
     dialogosSaqueador: [
         {
             personagem: "SAQUEADOR",
-            texto: "Então você é o herói que quer impedir nosso chefe?"
+            texto: "Então você é o {nome}, o herói que quer impedir nosso chefe?"
         },
         {
             personagem: "HERÓI",
@@ -186,7 +187,7 @@ window.Cutscenes = {
         },
         {
             personagem: "SAQUEADOR",
-            texto: "Então venha me enfrentar, herói!"
+            texto: "Então venha me enfrentar, {nome}!"
         },
         {
             personagem: "HERÓI",
@@ -532,17 +533,30 @@ window.Cutscenes = {
         ctx.lineWidth = 3;
         ctx.strokeRect(x, y, caixaLargura, caixaAltura);
 
-        // Nome do personagem
-        ctx.fillStyle = fala.personagem === "RAIO DE FOGO" ? "#fb923c" : "#38bdf8";
+        
+        // Nome personalizado do herói
+        const personagemAtual = fala.personagem;
+
+        const nomeExibido =
+            personagemAtual === "HERÓI" ||
+            personagemAtual === "HEÓI"
+                ? (window.nomeHeroiPersonalizado || "HERÓI")
+                : personagemAtual;
+
+        // Cor do nome do personagem
+        ctx.fillStyle =
+            personagemAtual === "RAIO DE FOGO"
+                ? "#fb923c"
+                : "#38bdf8";
 
         ctx.font = `bold ${Math.round(altura * 0.043)}px Arial`;
 
         ctx.fillText(
-            fala.personagem,
+            nomeExibido,
             x + 20,
             y + 35
-
         );
+
 
         //Texto do diálogo
         ctx.fillStyle = "#ffffff";
@@ -551,7 +565,14 @@ window.Cutscenes = {
                 // Quebrar o texto automaticamente
         // para não ultrapassar a caixa azul
 
-        const palavras = fala.texto.split(" ");
+        
+        const textoPersonalizado = fala.texto.replaceAll(
+            "{nome}",
+            window.nomeHeroiPersonalizado || "herói"
+        );
+
+        const palavras = textoPersonalizado.split(" ");
+
         const larguraMaxima = caixaLargura - 40;
 
         let linha = "";
@@ -650,21 +671,34 @@ window.Cutscenes = {
             }
         }
 
-        // Ponto de parada na Usina Elétrica
-        if (RaioDeFogo.x <= 4300) {
+        
+        /* =====================================
+        COLISÃO ENTRE RAIO DE FOGO E HERÓI
+        ===================================== */
 
-            RaioDeFogo.x = 4300;
+        const colisaoComHeroi =
+            RaioDeFogo.x < Jogador.x + Jogador.largura &&
+            RaioDeFogo.x + RaioDeFogo.largura > Jogador.x &&
+            RaioDeFogo.y < Jogador.y + Jogador.altura &&
+            RaioDeFogo.y + RaioDeFogo.altura > Jogador.y;
+
+        // Iniciar diálogo somente ao encostar no herói
+        if (colisaoComHeroi) {
+
             RaioDeFogo.movendo = false;
+            RaioDeFogo.atacando = false;
             RaioDeFogo.frame = 0;
             RaioDeFogo.tempoAnimacao = 0;
+            RaioDeFogo.animacaoAtual = "idle";
 
             this.estado = "dialogo_retorno_raio";
             this.dialogoAtual = 0;
 
             console.log(
-                "Raio de Fogo chegou! Preparar diálogo final."
+                "RAIO DE FOGO COLIDIU COM O HERÓI! DIÁLOGO INICIADO!"
             );
         }
+
     },
 
 

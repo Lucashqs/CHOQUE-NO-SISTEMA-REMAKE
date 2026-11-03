@@ -1,7 +1,7 @@
 
 /*
- * CHOQUE NO SISTEMA 2.0
- * Jogador — Movimento, Colisoes e Knockback
+ * CHOQUE NO SISTEMA REMAKE
+ * Jogador — Movimento, Colisões e Energia
  * Alencar Game Studio
  */
 
@@ -11,8 +11,6 @@ window.Jogador = {
   largura: 32,
   altura: 55,
 
-  
-  // Caixa de colisão física do herói
   obterCaixaColisao() {
     return {
       x: this.x,
@@ -22,6 +20,29 @@ window.Jogador = {
     };
   },
 
+  // SISTEMA DE ENERGIA
+  energia: 100,
+  energiaMaxima: 100,
+  custoBolaEletrica: 20,
+  regeneracaoEnergia: 5,
+
+  atualizarEnergia(dt) {
+    this.energia = Math.min(
+      this.energiaMaxima,
+      this.energia +
+        this.regeneracaoEnergia *
+        Math.max(0, dt) / 1000
+    );
+  },
+
+  consumirEnergia(valor) {
+    if (this.energia < valor) {
+      return false;
+    }
+
+    this.energia -= valor;
+    return true;
+  },
 
   vx: 0,
   vy: 0,
@@ -35,7 +56,15 @@ window.Jogador = {
   pulosRestantes: 2,
   botaoPuloAnterior: false,
 
-  // Sistema de recuo.
+  
+  /* =====================================
+    SISTEMA DE VOO — DISCO ELÉTRICO
+  ===================================== */
+
+  voando: false,
+  direcaoVoo: 1,
+
+
   tempoImpacto: 0,
   velocidadeImpacto: 0,
   duracaoImpacto: 220,
@@ -83,8 +112,21 @@ window.Jogador = {
 
     this.botaoPuloAnterior = pular;
 
-    // Durante o impacto, os controles
-    // nao interrompem o recuo.
+    
+    // =====================================
+    // DESATIVAR MODO DE VOO
+    // =====================================
+
+    
+    if (this.voando && novoPulo) {
+      this.voando = false;
+      this.vy = 0;
+
+      console.log("⚡ VOO DESATIVADO PELO BOTÃO PULO!");
+    }
+
+
+    
     const emImpacto = this.tempoImpacto > 0;
 
     if (emImpacto) {
@@ -113,7 +155,7 @@ window.Jogador = {
       return pertoX && pertoY;
     });
 
-    // Entrada na escada.
+    // ENTRADA NA ESCADA
     if (
       !emImpacto &&
       !this.subindoEscada &&
@@ -131,7 +173,7 @@ window.Jogador = {
         (escadaProxima.w - this.largura) / 2;
     }
 
-    // Movimento na escada.
+    // MOVIMENTO NA ESCADA
     if (
       !emImpacto &&
       this.subindoEscada &&
@@ -164,7 +206,6 @@ window.Jogador = {
           Math.min(base, this.y)
         );
 
-        // Sair pelo topo do predio.
         if (this.y <= topo && direita) {
           const predio = plataformas.find(p =>
             p.x >= e.x + e.w - 2 &&
@@ -182,7 +223,6 @@ window.Jogador = {
           }
         }
 
-        // Sair pela base.
         if (
           this.subindoEscada &&
           this.y >= base &&
@@ -193,51 +233,62 @@ window.Jogador = {
         }
 
         if (this.subindoEscada) {
-
-          
-
           return;
-          
         }
       }
     }
 
-    // Movimento horizontal.
+    // MOVIMENTO HORIZONTAL
     if (emImpacto) {
       this.vx = this.velocidadeImpacto;
     } else {
       this.vx = 0;
 
+      
       if (esquerda) {
         this.vx = -this.velocidade;
+        this.direcaoVoo = -1;
       }
 
       if (direita) {
         this.vx = this.velocidade;
+        this.direcaoVoo = 1;
       }
 
-      // Pulo duplo.
+
+      
       if (
         novoPulo &&
         this.pulosRestantes > 0 &&
         this.vy >= 0
       ) {
+        // Identificar o segundo pulo
+        const segundoPulo = this.pulosRestantes === 1;
+
         this.vy = this.forcaPulo;
         this.noChao = false;
         this.pulosRestantes--;
+
+        // Ativar o disco elétrico no segundo pulo
+        if (segundoPulo) {
+          this.voando = true;
+
+          console.log("⚡ DISCO ELÉTRICO ATIVADO!");
+        }
       }
+
     }
 
     const xAnterior = this.x;
 
     this.x += this.vx;
 
-    
-    // COLISÃO FÍSICA: HERÓI X SAQUEADORES
-    if (window.Inimigos && Array.isArray(Inimigos.lista)) {
+    // COLISÃO COM SAQUEADORES
+    if (
+      window.Inimigos &&
+      Array.isArray(Inimigos.lista)
+    ) {
       for (const npc of Inimigos.lista) {
-
-        // Ignorar inimigos não liberados ou derrotados
         if (
           !npc.liberado ||
           !npc.vivo ||
@@ -258,27 +309,19 @@ window.Jogador = {
 
         if (!sobrepostoX) continue;
 
-        // Herói vindo pela esquerda
         if (
           this.vx > 0 &&
           xAnterior + this.largura <= npc.x
         ) {
           this.x = npc.x - this.largura;
           this.vx = 0;
-        }
-
-        // Herói vindo pela direita
-        else if (
+        } else if (
           this.vx < 0 &&
           xAnterior >= npc.x + npc.largura
         ) {
           this.x = npc.x + npc.largura;
           this.vx = 0;
-        }
-
-        
-        // Corrigir sobreposição já existente
-        else {
+        } else {
           const centroHeroi =
             this.x + this.largura / 2;
 
@@ -293,18 +336,17 @@ window.Jogador = {
 
           this.vx = 0;
         }
-
       }
     }
 
-
-    // COLISÃO FÍSICA: HERÓI X RAIO DE FOGO
+    // COLISÃO COM RAIO DE FOGO
     if (
       window.RaioDeFogo &&
       RaioDeFogo.ativo &&
       !RaioDeFogo.derrotado
     ) {
-      const chefe = RaioDeFogo.obterCaixaColisao();
+      const chefe =
+        RaioDeFogo.obterCaixaColisao();
 
       const sobrepostoY =
         this.y + this.altura > chefe.y &&
@@ -315,27 +357,19 @@ window.Jogador = {
         this.x < chefe.x + chefe.w;
 
       if (sobrepostoX && sobrepostoY) {
-
-        // Herói se aproximando pela esquerda
         if (
           this.vx > 0 &&
           xAnterior + this.largura <= chefe.x
         ) {
           this.x = chefe.x - this.largura;
           this.vx = 0;
-        }
-
-        // Herói se aproximando pela direita
-        else if (
+        } else if (
           this.vx < 0 &&
           xAnterior >= chefe.x + chefe.w
         ) {
           this.x = chefe.x + chefe.w;
           this.vx = 0;
-        }
-
-        // Corrigir sobreposição já existente
-        else {
+        } else {
           const centroHeroi =
             this.x + this.largura / 2;
 
@@ -353,7 +387,7 @@ window.Jogador = {
       }
     }
 
-    // Colisao horizontal.
+    // COLISÃO HORIZONTAL COM PLATAFORMAS
     for (const p of plataformas) {
       if (
         p.y === 1000 &&
@@ -389,7 +423,7 @@ window.Jogador = {
       }
     }
 
-    // Limites horizontais do mundo.
+    // LIMITES DO MUNDO
     this.x = Math.max(
       0,
       Math.min(
@@ -398,10 +432,7 @@ window.Jogador = {
       )
     );
 
-    // ==========================================
     // BLOQUEIO DO DISTRITO COMERCIAL
-    // ==========================================
-
     const entradaDistrito = 1200;
 
     const avenidaConcluida =
@@ -410,28 +441,19 @@ window.Jogador = {
       Inimigos.avenidaCentralConcluida();
 
     if (!avenidaConcluida) {
-
       const limiteHeroi =
         entradaDistrito - this.largura;
 
-      // Bloquear apenas a travessia da esquerda
-      // para a direita.
       if (
         xAnterior + this.largura <= entradaDistrito &&
         this.x + this.largura > entradaDistrito
       ) {
-
         this.x = limiteHeroi;
         this.vx = 0;
-
       }
-
     }
 
-    // ==========================================
-    // BLOQUEIO — ENTRADA DO BAIRRO INDUSTRIAL
-    // ==========================================
-
+    // BLOQUEIO DO BAIRRO INDUSTRIAL
     const entradaIndustrial = 2400;
 
     const distritoConcluido =
@@ -440,7 +462,6 @@ window.Jogador = {
       Inimigos.distritoComercialConcluido();
 
     if (!distritoConcluido) {
-
       const limiteHeroi =
         entradaIndustrial - this.largura;
 
@@ -448,18 +469,12 @@ window.Jogador = {
         xAnterior + this.largura <= entradaIndustrial &&
         this.x + this.largura > entradaIndustrial
       ) {
-
         this.x = limiteHeroi;
         this.vx = 0;
-
       }
-
     }
 
-        // ==========================================
-    // BLOQUEIO — ENTRADA DA USINA ELÉTRICA
-    // ==========================================
-
+    // BLOQUEIO DA USINA ELÉTRICA
     const entradaUsina = 3600;
 
     const industrialConcluido =
@@ -468,7 +483,6 @@ window.Jogador = {
       Inimigos.bairroIndustrialConcluido();
 
     if (!industrialConcluido) {
-
       const limiteHeroi =
         entradaUsina - this.largura;
 
@@ -476,23 +490,39 @@ window.Jogador = {
         xAnterior + this.largura <= entradaUsina &&
         this.x + this.largura > entradaUsina
       ) {
-
         this.x = limiteHeroi;
         this.vx = 0;
-
       }
+    }
+
+    // GRAVIDADE
+    
+    // =====================================
+    // GRAVIDADE E MODO DE VOO
+    // =====================================
+
+    const yAnterior = this.y;
+
+    if (this.voando) {
+
+      // Suspender a gravidade
+      this.vy = 0;
+
+      // Manter o herói na mesma altura
+      this.noChao = false;
+
+    } else {
+
+      // Física normal do jogo
+      this.vy += Mundo1.gravidade;
+      this.vy = Math.min(this.vy, 16);
+      this.y += this.vy;
+      this.noChao = false;
 
     }
 
-    // Gravidade.
-    const yAnterior = this.y;
 
-    this.vy += Mundo1.gravidade;
-    this.vy = Math.min(this.vy, 16);
-    this.y += this.vy;
-    this.noChao = false;
-
-    // Colisao com topo das plataformas.
+    // COLISÃO COM TOPO DAS PLATAFORMAS
     for (const p of plataformas) {
       const sobrepostoX =
         this.x + this.largura > p.x &&
@@ -510,15 +540,23 @@ window.Jogador = {
         atingiuTopo &&
         this.vy >= 0
       ) {
-        this.y = p.y - this.altura;
-        this.vy = 0;
-        this.noChao = true;
-        this.pulosRestantes = 2;
+       
+          this.y = p.y - this.altura;
+          this.vy = 0;
+          this.noChao = true;
+          this.pulosRestantes = 2;
+
+          // Desativar o disco elétrico ao pousar
+          if (this.voando) {
+            this.voando = false;
+
+            console.log("⚡ DISCO ELÉTRICO DESATIVADO!");
+          }
+
       }
     }
 
-    // Impedir subida atraves da parte
-    // inferior de uma plataforma.
+    // COLISÃO COM A BASE DAS PLATAFORMAS
     if (this.vy < 0) {
       for (const p of plataformas) {
         const sobrepostoX =
@@ -542,12 +580,12 @@ window.Jogador = {
       }
     }
 
-    // Encerrar o recuo.
+    // ENCERRAR RECUO
     if (this.tempoImpacto <= 0) {
       this.velocidadeImpacto = 0;
     }
 
-    // Reaparecer ao cair do mundo.
+    // REAPARECER AO CAIR DO MUNDO
     if (this.y > Mundo1.altura + 200) {
       this.x = 40;
       this.y = 900;
@@ -560,9 +598,6 @@ window.Jogador = {
       this.tempoImpacto = 0;
       this.velocidadeImpacto = 0;
     }
-
-  
-    
   },
 
   desenhar(ctx, cameraX, cameraY) {
@@ -571,24 +606,24 @@ window.Jogador = {
 
     ctx.save();
 
-    // Corpo.
+    // CORPO
     ctx.fillStyle = "#168bdf";
     ctx.fillRect(x + 5, y + 17, 22, 25);
 
-    // Cabeca.
+    // CABEÇA
     ctx.fillStyle = "#e7ae86";
     ctx.fillRect(x + 8, y, 16, 18);
 
-    // Mascara.
+    // MÁSCARA
     ctx.fillStyle = "#172a59";
     ctx.fillRect(x + 6, y + 3, 20, 8);
 
-    // Bracos.
+    // BRAÇOS
     ctx.fillStyle = "#168bdf";
     ctx.fillRect(x, y + 20, 7, 20);
     ctx.fillRect(x + 25, y + 20, 7, 20);
 
-    // Pernas.
+    // PERNAS
     ctx.fillStyle = "#14254a";
     ctx.fillRect(x + 6, y + 42, 8, 13);
     ctx.fillRect(x + 19, y + 42, 8, 13);

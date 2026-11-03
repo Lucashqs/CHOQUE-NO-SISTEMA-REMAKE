@@ -671,21 +671,34 @@ window.Cutscenes = {
             }
         }
 
-        // Ponto de parada na Usina Elétrica
-        if (RaioDeFogo.x <= 4300) {
+        
+        /* =====================================
+        COLISÃO ENTRE RAIO DE FOGO E HERÓI
+        ===================================== */
 
-            RaioDeFogo.x = 4300;
+        const colisaoComHeroi =
+            RaioDeFogo.x < Jogador.x + Jogador.largura &&
+            RaioDeFogo.x + RaioDeFogo.largura > Jogador.x &&
+            RaioDeFogo.y < Jogador.y + Jogador.altura &&
+            RaioDeFogo.y + RaioDeFogo.altura > Jogador.y;
+
+        // Iniciar diálogo somente ao encostar no herói
+        if (colisaoComHeroi) {
+
             RaioDeFogo.movendo = false;
+            RaioDeFogo.atacando = false;
             RaioDeFogo.frame = 0;
             RaioDeFogo.tempoAnimacao = 0;
+            RaioDeFogo.animacaoAtual = "idle";
 
             this.estado = "dialogo_retorno_raio";
             this.dialogoAtual = 0;
 
             console.log(
-                "Raio de Fogo chegou! Preparar diálogo final."
+                "RAIO DE FOGO COLIDIU COM O HERÓI! DIÁLOGO INICIADO!"
             );
         }
+
     },
 
 
