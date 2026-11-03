@@ -7,16 +7,29 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
+import android.webkit.JavascriptInterface;
 import android.view.View;
 
 public class MainActivity extends Activity {
 
     private WebView webView;
 
+    // Comunicação entre JavaScript e Android
+    public class AndroidInterface {
+
+        @JavascriptInterface
+        public void sairDoJogo() {
+            runOnUiThread(() -> {
+                finishAffinity();
+            });
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Tela cheia e modo imersivo
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
@@ -37,8 +50,16 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
 
+        // Disponibiliza a função Android.sairDoJogo()
+        // para o JavaScript do jogo
+        webView.addJavascriptInterface(
+            new AndroidInterface(),
+            "Android"
+        );
+
         setContentView(webView);
 
+        // Arquivo inicial do jogo
         webView.loadUrl(
             "file:///android_asset/index.htm"
         );
@@ -48,7 +69,8 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         if (webView != null) {
             webView.destroy();
+            webView = null;
         }
         super.onDestroy();
     }
-    }
+}

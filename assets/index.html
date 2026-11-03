@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -210,3 +211,217 @@
 
 
 </html>
+=======
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Choque no Sistema REMAKE</title>
+  <link rel="stylesheet" href="css/menu.css">
+</head>
+
+<body>
+    
+    <!-- PARTÍCULAS ELÉTRICAS DO MENU -->
+    <div class="particulas" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    </div>
+
+    
+    <!-- PAINEL DE CONFIGURAÇÕES -->
+    <section id="painelConfiguracoes" class="painel-configuracoes" hidden>
+
+    <h2>CONFIGURAÇÕES</h2>
+
+    <div class="config-opcao">
+        <label for="volumeMusica">Música</label>
+
+        <input
+        type="range"
+        id="volumeMusica"
+        min="0"
+        max="100"
+        value="70"
+        >
+    </div>
+
+    <div class="config-opcao">
+        <label for="volumeEfeitos">Efeitos sonoros</label>
+
+        <input
+        type="range"
+        id="volumeEfeitos"
+        min="0"
+        max="100"
+        value="80"
+        >
+    </div>
+
+    <button id="btnVoltarConfig">
+        VOLTAR
+    </button>
+
+    </section>
+
+    
+    <!-- MÚSICA DE FUNDO DO MENU -->
+    <audio
+    id="musicaMenu"
+    src="audio/musica_menu.mp3"
+    loop
+    preload="auto"
+    ></audio>
+
+    <!-- MENU PRINCIPAL -->
+    <main class="menu-principal">
+
+    <!-- LOGO DO JOGO -->
+    <header class="menu-topo">
+        <img
+        src="imagens/logo_remake.png"
+        alt="Choque no Sistema REMAKE"
+        class="logo-jogo"
+        >
+    </header>
+
+    <!-- BOTÕES DO MENU -->
+    <nav class="menu-botoes">
+
+        <button
+        id="btnJogar"
+        onclick="window.location.href='teste_mundo1.html'"
+        >
+        JOGAR
+        </button>
+
+        
+        <!-- CONTINUAR PARTIDA SALVA -->
+        <button
+        id="btnContinuar"
+        disabled
+        >
+        CONTINUAR
+        </button>
+
+
+        <button id="btnConfiguracoes">
+        CONFIGURAÇÕES
+        </button>
+
+        <button id="btnSair" onclick="sairDoJogo()">
+        SAIR
+        </button>
+
+    </nav>
+
+    <!-- LOGO DO ESTÚDIO -->
+    <footer class="menu-rodape">
+        <img
+        src="imagens/logo_alencar.png"
+        alt="Alencar Game Studio"
+        class="logo-studio"
+        >
+    </footer>
+
+    </main>
+
+    
+    
+    <!-- JANELA DE CONFIRMAÇÃO DE SAÍDA -->
+    <div id="janelaSair" class="janela-sair" hidden>
+        <div class="caixa-sair">
+            <h2>⚡ SAIR DO JOGO?</h2>
+
+            <p>Deseja realmente sair do
+            Choque no Sistema REMAKE?</p>
+
+            <div class="botoes-sair">
+                <button type="button"
+                    onclick="confirmarSaida()">
+                    SIM, SAIR
+                </button>
+
+                <button type="button"
+                    onclick="cancelarSaida()">
+                    NÃO
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/salvamento.js"></script>
+    <script src="js/menu.js"></script>
+
+    
+    <script>       
+        
+        /* =====================================
+        CHOQUE NO SISTEMA REMAKE
+        CONFIRMAÇÃO DE SAÍDA
+        ===================================== */
+
+        // Abrir janela de confirmação
+        function sairDoJogo() {
+            const janela = document.getElementById("janelaSair");
+
+            if (janela) {
+                janela.hidden = false;
+            }
+        }
+
+        // Cancelar saída e continuar jogando
+        function cancelarSaida() {
+            const janela = document.getElementById("janelaSair");
+
+            if (janela) {
+                janela.hidden = true;
+            }
+        }
+
+        // Confirmar e fechar o aplicativo
+        function confirmarSaida() {
+
+            // Parar a música do menu
+            const musica = document.getElementById("musicaMenu");
+
+            if (musica) {
+                musica.pause();
+                musica.currentTime = 0;
+            }
+
+            // Fechar o aplicativo Android
+            if (
+                window.Android &&
+                typeof window.Android.sairDoJogo === "function"
+            ) {
+                window.Android.sairDoJogo();
+            } else {
+                alert("Encerramento disponível apenas no APK Android.");
+            }
+        }
+
+
+    </script>
+
+</body>
+
+
+
+</html>
+>>>>>>> c419f35235822dd270974a0bd7bcaf45162bafe7
