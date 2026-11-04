@@ -89,12 +89,44 @@ window.RaioDeFogo = {
     idle: [],
     run: [],
     attack_01: [],
+    defesa: [],
     death: []
   },
 
   frame: 0,
   tempoAnimacao: 0,
   velocidadeAnimacao: 130,
+
+  // ==========================================
+  // DEFESA ESPECIAL — SUPER RAIO DE FOGO
+  // ==========================================
+
+  defesaAtiva: false,
+  defesaDesbloqueada: false,
+
+  duracaoDefesa: 4000,
+  tempoDefesa: 0,
+
+  recargaDefesa: 8000,
+  tempoRecargaDefesa: 0,
+
+  danoDefesa: 20,
+
+  // ==========================================
+  // CONTROLE DOS FRAMES DA DEFESA
+  // ==========================================
+
+  // Frame atual da defesa (0 = frame_01)
+  frameDefesa: 0,
+
+  // Tempo entre os frames
+  tempoFrameDefesa: 0,
+
+  // Velocidade da animação
+  intervaloFrameDefesa: 130,
+
+  // Fases: inicio, sustentando, finalizando
+  faseDefesa: "inicio",
 
   // ==========================================
   // CONTROLE DO ATAQUE
@@ -588,6 +620,32 @@ window.RaioDeFogo = {
       this.sprites.run.push(imagem);
     }
 
+    // ==========================================
+    // ANIMAÇÃO DE DEFESA — SUPER RAIO DE FOGO
+    // ==========================================
+
+    this.sprites.defesa = [];
+
+    for (let i = 1; i <= 8; i++) {
+
+      const numero = String(i).padStart(2, "0");
+
+      const imagem = new Image();
+
+      imagem.src =
+        `sprites/chefoes/raio_de_fogo/defesa/explosao_fogo_frame_${numero}.png`;
+
+      imagem.onerror = () => {
+        console.error(
+          "Erro ao carregar defesa do Raio de Fogo:",
+          imagem.src
+        );
+      };
+
+      this.sprites.defesa.push(imagem);
+    }
+
+
     // ANIMAÇÃO DE DERROTA
 
     this.sprites.death = [];
@@ -606,12 +664,226 @@ window.RaioDeFogo = {
   },
 
   // ==========================================
+  // ATIVAR DEFESA — SUPER RAIO DE FOGO
+  // ==========================================
+
+  ativarDefesa() {
+
+    // Impedir ativação indevida
+    if (
+      !this.ativo ||
+      this.derrotado ||
+      this.defesaAtiva ||
+      !this.defesaDesbloqueada ||
+      this.tempoRecargaDefesa > 0
+    ) {
+      return false;
+    }
+
+    // Ativar proteção
+    this.defesaAtiva = true;
+
+    // Interromper corrida e ataque
+    this.atacando = false;
+    this.movendo = false;
+    this.bolaDisparada = false;
+
+    // Definir estado
+    this.estado = "defesa";
+
+    // Começar pelo frame 01
+    this.frameDefesa = 0;
+    this.tempoFrameDefesa = 0;
+
+    // Iniciar pela animação de entrada
+    this.faseDefesa = "inicio";
+
+    // Preparar duração da proteção
+    this.tempoDefesa = this.duracaoDefesa;
+
+    console.log(
+      "🔥 SUPER RAIO DE FOGO — DEFESA ATIVADA!"
+    );
+
+    return true;
+  },
+
+  // ==========================================
+  // ATUALIZAR ANIMAÇÃO DA DEFESA ESPECIAL
+  // ==========================================
+
+  atualizarDefesa(dt) {
+
+    if (!this.defesaAtiva || this.derrotado) {
+      return;
+    }
+
+    // Contar tempo entre os frames
+    this.tempoFrameDefesa += dt;
+
+    // FASE 1 — FRAMES 01 ATÉ 05
+    if (this.faseDefesa === "inicio") {
+
+      if (
+        this.tempoFrameDefesa >=
+        this.intervaloFrameDefesa
+      ) {
+
+        this.tempoFrameDefesa = 0;
+
+        if (this.frameDefesa < 4) {
+          this.frameDefesa++;
+        }
+
+        // Chegou ao frame 05
+        if (this.frameDefesa === 4) {
+          this.faseDefesa = "sustentando";
+          this.tempoDefesa = this.duracaoDefesa;
+        }
+      }
+
+      return;
+    }
+
+    // FASE 2 — MANTER O FRAME 05
+    if (this.faseDefesa === "sustentando") {
+
+      this.frameDefesa = 4;
+
+      this.tempoDefesa -= dt;
+
+      if (this.tempoDefesa <= 0) {
+
+        this.tempoDefesa = 0;
+        this.faseDefesa = "finalizando";
+        this.tempoFrameDefesa = 0;
+
+      }
+
+      return;
+    }
+
+    // FASE 3 — FRAMES 06, 07 E 08
+    if (this.faseDefesa === "finalizando") {
+
+      if (
+        this.tempoFrameDefesa >=
+        this.intervaloFrameDefesa
+      ) {
+
+        this.tempoFrameDefesa = 0;
+        this.frameDefesa++;
+
+        // Terminou o frame 08
+        if (this.frameDefesa >= 7) {
+
+          this.defesaAtiva = false;
+          
+          this.estado = "aguardando";
+          this.atacando = false;
+          this.movendo = false;
+          this.bolaDisparada = false;
+
+          this.frame = 0;
+          this.tempoAnimacao = 0;
+          this.animacaoAnterior = null;
+
+          this.frameDefesa = 0;
+          this.tempoFrameDefesa = 0;
+          this.faseDefesa = "inicio";
+
+          this.tempoRecargaDefesa = this.recargaDefesa;
+
+          console.log(
+            "🔥 DEFESA FINALIZADA! Voltando ao combate."
+          );
+        }
+      }
+    }
+  },
+
+  // ==========================================
+  // DANO POR CONTATO — DEFESA ESPECIAL
+  // ==========================================
+
+  verificarDanoDefesa(jogador, vidaHeroi) {
+
+    // Verificar se a defesa está ativa
+    if (
+      !this.defesaAtiva ||
+      !this.ativo ||
+      this.derrotado ||
+      !jogador ||
+      !vidaHeroi
+    ) {
+      return;
+    }
+
+    // Verificar se o herói está vulnerável
+    if (
+      vidaHeroi.valor <= 0 ||
+      vidaHeroi.tempoDano > 0
+    ) {
+      return;
+    }
+
+    // Caixa de colisão do Raio de Fogo
+    const alcanceExtraX = 45;
+    const alcanceExtraY = 20;
+
+    const caixaChefao = {
+      x: this.x - alcanceExtraX,
+      y: this.y - alcanceExtraY,
+      w: this.largura + alcanceExtraX * 2,
+      h: this.altura + alcanceExtraY * 2
+    };
+
+    // Detectar colisão com o herói
+    const colisao =
+      jogador.x < caixaChefao.x + caixaChefao.w &&
+      jogador.x + jogador.largura > caixaChefao.x &&
+      jogador.y < caixaChefao.y + caixaChefao.h &&
+      jogador.y + jogador.altura > caixaChefao.y;
+
+    if (colisao) {
+
+      // Aplicar dano ao herói
+      vidaHeroi.valor = Math.max(
+        0,
+        vidaHeroi.valor - this.danoDefesa
+      );
+
+      // Invulnerabilidade temporária do herói
+      vidaHeroi.tempoDano = 1000;
+
+      console.log(
+        "🔥 HERÓI ATINGIDO PELA DEFESA DO RAIO DE FOGO!",
+        "Dano:", this.danoDefesa,
+        "Vida restante:", vidaHeroi.valor
+      );
+    }
+  },
+
+  // ==========================================
   // RECEBER DANO
   // ==========================================
 
   receberDano(dano) {
 
     if (!this.ativo || this.derrotado) {
+      return;
+    }
+
+    // ==========================================
+    // INVULNERABILIDADE DURANTE A DEFESA
+    // ==========================================
+
+    if (this.defesaAtiva) {
+
+      console.log(
+        "🔥 RAIO DE FOGO PROTEGIDO! DANO BLOQUEADO!"
+      );
+
       return;
     }
 
@@ -714,6 +986,27 @@ window.RaioDeFogo = {
 
     this.projeteis = [];
     this.tempoRecarga = 0;
+        
+    // ==========================================
+    // REINICIAR DEFESA ESPECIAL
+    // ==========================================
+
+    // Defesa começa desativada
+    this.defesaAtiva = false;
+
+    // Será liberada aos 50% de vida
+    this.defesaDesbloqueada = false;
+
+    // Reiniciar temporizadores
+    this.tempoDefesa = 0;
+    this.tempoRecargaDefesa = 0;
+
+    // Reiniciar animação no frame 01
+    this.frameDefesa = 0;
+    this.tempoFrameDefesa = 0;
+
+    // Preparar fase inicial
+    this.faseDefesa = "inicio";
 
     // ENERGIA CHEIA AO INICIAR
     this.energia = this.energiaMaxima;
@@ -788,6 +1081,70 @@ window.RaioDeFogo = {
     }
 
     if (!this.ativo || this.derrotado) {
+      return;
+    }
+
+    // ==========================================
+    // CONTROLE DA DEFESA ESPECIAL
+    // ==========================================
+
+    // Atualizar recarga da defesa
+    if (this.tempoRecargaDefesa > 0) {
+
+      this.tempoRecargaDefesa = Math.max(
+        0,
+        this.tempoRecargaDefesa - dt
+      );
+
+    }
+
+    // ==========================================
+    // ATIVAÇÃO AUTOMÁTICA AOS 50% DE VIDA
+    // ==========================================
+
+    // Liberar defesa quando atingir 50% de vida
+    if (
+      this.vida > 0 &&
+      this.vida <= this.vidaMaxima * 0.5
+    ) {
+      this.defesaDesbloqueada = true;
+    }
+
+    // Ativar defesa quando estiver disponível
+    if (
+      this.defesaDesbloqueada &&
+      !this.defesaAtiva &&
+      this.tempoRecargaDefesa <= 0 &&
+      vidaHeroi &&
+      vidaHeroi.valor > 0
+    ) {
+      this.ativarDefesa();
+    }
+
+    // Se a defesa estiver ativa
+    // ==========================================
+    // DEFESA ESPECIAL ATIVA
+    // ==========================================
+
+    if (this.defesaAtiva) {
+
+      // Atualizar animação da defesa
+      this.atualizarDefesa(dt);
+
+      // Verificar dano por contato com o herói
+      this.verificarDanoDefesa(
+        jogador,
+        vidaHeroi
+      );
+
+      // Continuar atualizando bolas de fogo
+      this.atualizarProjeteis(
+        dt,
+        jogador,
+        vidaHeroi
+      );
+
+      // Bloquear RUN e ATQ1 durante a defesa
       return;
     }
 
@@ -955,6 +1312,54 @@ window.RaioDeFogo = {
         ctx.restore();
       }
 
+      return;
+    }
+
+    // ==========================================
+    // DESENHAR DEFESA — SUPER RAIO DE FOGO
+    // ==========================================
+
+    if (this.defesaAtiva) {
+
+      const imagem =
+        this.sprites.defesa[this.frameDefesa];
+
+      if (
+        imagem &&
+        imagem.complete &&
+        imagem.naturalWidth > 0
+      ) {
+
+        ctx.save();
+
+        const centroX =
+          this.x - cameraX + this.largura / 2;
+
+        const posicaoY =
+          this.y - cameraY;
+
+        ctx.translate(
+          centroX,
+          posicaoY
+        );
+
+        // Virar sprite conforme direção do chefão
+        if (this.direcao === -1) {
+          ctx.scale(-1, 1);
+        }
+
+        ctx.drawImage(
+          imagem,
+          -this.largura / 2,
+          0,
+          this.largura,
+          this.altura
+        );
+
+        ctx.restore();
+      }
+
+      // Impedir desenho de RUN, ATQ1 e IDLE
       return;
     }
 

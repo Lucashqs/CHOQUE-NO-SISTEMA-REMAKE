@@ -141,3 +141,65 @@ btnContinuar.addEventListener("click", () => {
     "teste_mundo1.html?continuar=1";
 
 });
+// =====================================
+// CHOQUE NO SISTEMA REMAKE - NATAL 2026
+// SISTEMA DE NEVE ANIMADA
+// =====================================
+
+function iniciarNeveNatal() {
+
+    const camadaNeve = document.getElementById("neve-natal");
+
+    if (!camadaNeve) {
+        console.warn("Camada de neve não encontrada!");
+        return;
+    }
+
+    // Evitar criar flocos duplicados
+    camadaNeve.innerHTML = "";
+
+    // Quantidade de flocos conforme o dispositivo
+    const quantidadeFlocos =
+        window.innerWidth < 600 ? 25 : 50;
+
+    for (let i = 0; i < quantidadeFlocos; i++) {
+
+        const floco = document.createElement("span");
+
+        floco.className = "floco";
+        floco.textContent = "❄";
+
+        // Posição horizontal aleatória
+        floco.style.left = Math.random() * 100 + "%";
+
+        // Tamanho aleatório
+        floco.style.fontSize =
+            (6 + Math.random() * 12) + "px";
+
+        // Velocidade da queda
+        floco.style.animationDuration =
+            (6 + Math.random() * 8) + "s";
+
+        // Distribuir flocos pela tela desde o início
+        floco.style.animationDelay =
+            (-Math.random() * 14) + "s";
+
+        // Transparência variada
+        floco.style.opacity =
+            0.4 + Math.random() * 0.6;
+
+        camadaNeve.appendChild(floco);
+    }
+
+    console.log("❄️ Neve natalina iniciada!");
+}
+
+// Iniciar quando o HTML estiver pronto
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        iniciarNeveNatal
+    );
+} else {
+    iniciarNeveNatal();
+}
