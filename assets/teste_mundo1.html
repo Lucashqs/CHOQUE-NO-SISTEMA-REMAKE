@@ -622,6 +622,7 @@
     <!-- MANTER TODOS OS SCRIPTS ORIGINAIS ABAIXO -->
 
   <script src="js/mundo1.js"></script>
+  <script src="js/neve_natal.js"></script>
   <script src="js/jogador.js"></script>
   <script src="js/animacoes.js"></script>
   <script src="js/combate.js"></script>
@@ -1005,6 +1006,12 @@
     // Inicializacao.
     AnimacoesHeroi.iniciar();
     Inimigos.iniciar();
+
+    // ==========================================
+    // NATAL 2026 — INICIALIZAR NEVE
+    // ==========================================
+
+    NeveNatal.iniciar(canvas.width, canvas.height);
 
     
     // ==========================================
@@ -2434,6 +2441,17 @@
       );
 
       // Desenhar dialogo
+      // ==========================================
+      // NATAL 2026 — NEVE ANIMADA
+      // ==========================================
+
+      // Atualizar movimento dos flocos
+      NeveNatal.atualizar(dt);
+
+      // Desenhar neve sobre o cenário e personagens
+      NeveNatal.desenhar(ctx);
+
+      // Desenhar diálogo por cima da neve
       Cutscenes.desenharDialogo(ctx);
 
       atualizarHUD();

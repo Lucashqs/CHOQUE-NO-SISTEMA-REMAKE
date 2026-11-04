@@ -15,12 +15,15 @@ window.Mundo1 = {
   altura: 1100,
   gravidade: 0.65,
 
-  // CENÁRIO 1 — AVENIDA CENTRAL
-  ceuImagem: (() => {
+  // ==========================================
+  // MUNDO 1 — CENÁRIO PANORÂMICO NATAL 2026
+  // ==========================================
+
+  cenarioCompletoImagem: (() => {
     const imagem = new Image();
 
     imagem.src =
-      "sprites/cenarios/mundo1/ceu.png";
+      "sprites/cenarios/mundo1/mundo1_natal_2026.png";
 
     return imagem;
   })(),
@@ -157,87 +160,42 @@ window.Mundo1 = {
   },
 
   // DESENHAR CENÁRIOS
+  
+  // ==========================================
+  // DESENHAR CENÁRIO PANORÂMICO — NATAL 2026
+  // ==========================================
+
   desenharCenarios(ctx, cameraX, cameraY) {
 
-    const larguraTela = ctx.canvas.width;
-    const alturaTela = ctx.canvas.height;
+    const imagem = this.cenarioCompletoImagem;
 
-    const chaoFisico = 1000 - cameraY;
+    if (
+      !imagem ||
+      !imagem.complete ||
+      imagem.naturalWidth <= 0 ||
+      imagem.naturalHeight <= 0
+    ) {
+      return;
+    }
 
-    const cenarios = this.obterCenarios();
+    // Uma imagem cobre todo o Mundo 1
+    const larguraMundo = this.largura; // 4800
+    const alturaMundo = this.altura;   // 1100
 
-    cenarios.forEach(cenario => {
+    // Posição do cenário acompanhando a câmera.
+    const x = -cameraX;
+    const y = 1000 - cameraY - (alturaMundo * 0.73);
 
-      const imagem = cenario.imagem;
-
-      // Verificar carregamento da imagem
-      if (
-        !imagem.complete ||
-        imagem.naturalWidth <= 0 ||
-        imagem.naturalHeight <= 0
-      ) {
-        return;
-      }
-
-      // Posição do cenário na tela
-      const x = cenario.inicio - cameraX;
-
-      // Ignorar cenário fora da câmera
-      if (
-        x + cenario.largura <= 0 ||
-        x >= larguraTela
-      ) {
-        return;
-      }
-
-      // Preservar proporção original
-      const escala =
-        cenario.largura / imagem.naturalWidth;
-
-      const larguraImagem =
-        imagem.naturalWidth * escala;
-
-      const alturaImagem =
-        imagem.naturalHeight * escala;
-
-      // Localizar a linha do chão na imagem
-      const linhaChaoImagem =
-        alturaImagem * cenario.linhaChao;
-
-      // Posicionar a imagem
-      const y =
-        chaoFisico -
-        linhaChaoImagem +
-        cenario.ajusteY;
-
-      ctx.save();
-
-      // Limitar imagem ao seu trecho
-      ctx.beginPath();
-
-      ctx.rect(
-        x,
-        0,
-        cenario.largura,
-        alturaTela
-      );
-
-      ctx.clip();
-
-      // Desenhar imagem
-      ctx.drawImage(
-        imagem,
-        x,
-        y,
-        larguraImagem,
-        alturaImagem
-      );
-
-      ctx.restore();
-
-    });
+    ctx.drawImage(
+      imagem,
+      x,
+      y,
+      larguraMundo,
+      alturaMundo
+    );
 
   },
+
 
   // DESENHAR CHÃO VISUAL CONTÍNUO
   desenharChao(ctx, cameraX, cameraY) {
@@ -368,11 +326,11 @@ window.Mundo1 = {
     );
 
     // 3 — Rua contínua
-    this.desenharChao(
-      ctx,
-      cameraX,
-      cameraY
-    );
+    //this.desenharChao(
+     // ctx,
+      //cameraX,
+      //cameraY
+    //);
 
   },
 
