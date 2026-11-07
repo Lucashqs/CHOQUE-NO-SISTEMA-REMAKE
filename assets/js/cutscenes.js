@@ -419,13 +419,43 @@ window.Cutscenes = {
 
                 console.log("RAIO DE FOGO DERROTADO!");
 
+                // Remover o chefão após a cutscene
                 RaioDeFogo.ativo = false;
 
-
-
+                // Registrar a conclusão da batalha
                 this.estado = "pos_derrota_raio";
 
+                // Encerrar a cutscene normalmente
                 this.finalizar();
+
+                // Exibir a tela de vitória
+                const telaVitoria =
+                    document.getElementById("telaFaseCompleta");
+
+                if (telaVitoria) {
+
+                    telaVitoria.hidden = false;
+
+                    // Ocultar os controles de combate
+                    const controles =
+                        document.querySelector(".controles");
+
+                    if (controles) {
+                        controles.classList.add("ocultos");
+                    }
+
+                    // Ocultar o botão de pausa
+                    const btnPause =
+                        document.getElementById("btnPause");
+
+                    if (btnPause) {
+                        btnPause.hidden = true;
+                    }
+
+                    console.log(
+                        "MUNDO 1 CONCLUÍDO — TELA DE VITÓRIA EXIBIDA!"
+                    );
+                }
 
                 return;
             }

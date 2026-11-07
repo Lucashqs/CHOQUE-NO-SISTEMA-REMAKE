@@ -104,13 +104,62 @@ window.RaioDeFogo = {
   defesaAtiva: false,
   defesaDesbloqueada: false,
 
+
   duracaoDefesa: 4000,
   tempoDefesa: 0,
 
   recargaDefesa: 8000,
   tempoRecargaDefesa: 0,
 
+  // Dano por contato com o chefão
   danoDefesa: 20,
+
+  // ==========================================
+  // NOVA DEFESA — BOLAS DE FOGO EM 8 DIREÇÕES
+  // ==========================================
+
+  // Quantidade de direções por rajada
+  quantidadeDirecoesDefesa: 24,
+
+  // Intervalo entre rajadas (milissegundos)
+  intervaloRajadaDefesa: 800,
+
+  // Temporizador das rajadas
+  tempoRajadaDefesa: 0,
+
+  // Dano de cada bola de fogo
+  danoBolaDefesa: 15,
+
+  // Velocidade dos projéteis
+  velocidadeBolaDefesa: 5,
+
+  // Lista independente de projéteis
+  projeteisDefesa: [],
+
+  
+  // ==========================================
+  // EFEITOS CINEMATOGRÁFICOS DA DEFESA
+  // ==========================================
+
+  // Partículas das explosões
+  particulasImpacto: [],
+
+  // Clarões das explosões
+  claroesImpacto: [],
+
+  // Tremor de tela
+  tremorImpacto: 0,
+
+  // Intensidade máxima do tremor
+  intensidadeTremor: 7,
+
+  // Duração do tremor em milissegundos
+  duracaoTremor: 200,
+
+
+  // Controle da animação completa
+  repetirAnimacaoDefesa: true,
+
 
   // ==========================================
   // CONTROLE DOS FRAMES DA DEFESA
@@ -138,6 +187,22 @@ window.RaioDeFogo = {
 
   tempoRecarga: 0,
   recargaAtaque: 1500,
+
+  // ==========================================
+  // SOCO DO RAIO DE FOGO
+  // ==========================================
+
+  // Dano causado pelo soco
+  danoSoco: 20,
+
+  // Distância para iniciar o soco
+  alcanceSoco: 110,
+
+  // Impedir múltiplos danos no mesmo soco
+  acertouNesteAtaque: false,
+
+  // Identificar o tipo de ataque
+  tipoAtaque: null,
 
   // ==========================================
   // BOLAS DE FOGO
@@ -179,6 +244,451 @@ window.RaioDeFogo = {
 
     console.log("BOLA DE FOGO CRIADA!");
   },
+
+
+
+  // ==========================================
+  // TREMOR CINEMATOGRÁFICO DO IMPACTO
+  // ==========================================
+
+  ativarTremorImpacto() {
+
+    // Reiniciar a duração a cada impacto
+    this.tremorImpacto = this.duracaoTremor;
+
+  },
+
+  atualizarTremorImpacto(dt) {
+
+    if (this.tremorImpacto > 0) {
+
+      this.tremorImpacto = Math.max(
+        0,
+        this.tremorImpacto - Math.max(0, dt)
+      );
+
+    }
+
+  },
+
+  obterDeslocamentoTremor() {
+
+    if (this.tremorImpacto <= 0) {
+      return { x: 0, y: 0 };
+    }
+
+    // Diminuir a intensidade gradualmente
+    const intensidade =
+      this.intensidadeTremor *
+      (this.tremorImpacto / this.duracaoTremor);
+
+    return {
+      x: (Math.random() * 2 - 1) * intensidade,
+      y: (Math.random() * 2 - 1) * intensidade
+    };
+
+  },
+
+  
+  // ==========================================
+  // CLARÃO CINEMATOGRÁFICO DO IMPACTO
+  // ==========================================
+
+  criarClaraoImpacto(x, y) {
+
+    this.claroesImpacto.push({
+      x: x,
+      y: y,
+      raio: 65,
+      duracao: 150,
+      tempoRestante: 150
+    });
+
+  },
+
+  atualizarClaroesImpacto(dt) {
+
+    for (const clarao of this.claroesImpacto) {
+      clarao.tempoRestante -= Math.max(0, dt);
+    }
+
+    this.claroesImpacto =
+      this.claroesImpacto.filter(
+        clarao => clarao.tempoRestante > 0
+      );
+
+  },
+
+  desenharClaroesImpacto(ctx, cameraX, cameraY) {
+
+    for (const clarao of this.claroesImpacto) {
+
+      const x = clarao.x - cameraX;
+      const y = clarao.y - cameraY;
+
+      const intensidade = Math.max(
+        0,
+        clarao.tempoRestante / clarao.duracao
+      );
+
+      ctx.save();
+
+      ctx.globalAlpha = intensidade;
+
+      const gradiente = ctx.createRadialGradient(
+        x, y, 0,
+        x, y, clarao.raio
+      );
+
+      gradiente.addColorStop(0, "rgba(255,255,255,1)");
+      gradiente.addColorStop(0.25, "rgba(255,255,0,0.9)");
+      gradiente.addColorStop(0.6, "rgba(255,120,0,0.6)");
+      gradiente.addColorStop(1, "rgba(255,50,0,0)");
+
+      ctx.fillStyle = gradiente;
+
+      ctx.beginPath();
+      ctx.arc(x, y, clarao.raio, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+  },
+
+  
+  // ==========================================
+  // EXPLOSÃO DE PARTÍCULAS DE FOGO
+  // ==========================================
+
+  criarParticulasImpacto(x, y) {
+
+    const cores = [
+      "#ffff00",
+      "#ffcc00",
+      "#ff8800",
+      "#ff4500",
+      "#ff2200"
+    ];
+
+    const quantidade = 20;
+
+    for (let i = 0; i < quantidade; i++) {
+
+      // Espalhar partículas em todas as direções
+      const angulo = Math.random() * Math.PI * 2;
+
+      // Velocidade aleatória
+      const velocidade = 2 + Math.random() * 5;
+
+      // Criar partícula
+      this.particulasImpacto.push({
+
+        x: x,
+        y: y,
+
+        velocidadeX: Math.cos(angulo) * velocidade,
+        velocidadeY: Math.sin(angulo) * velocidade,
+
+        tamanho: 3 + Math.random() * 6,
+
+        cor: cores[
+          Math.floor(Math.random() * cores.length)
+        ],
+
+        tempoVida: 450 + Math.random() * 300,
+        tempoMaximo: 750,
+
+        ativa: true
+      });
+    }
+
+    console.log(
+      "🔥 EXPLOSÃO CRIADA: 20 PARTÍCULAS!"
+    );
+  },
+
+  
+  // ==========================================
+  // ATUALIZAR PARTÍCULAS DA EXPLOSÃO
+  // ==========================================
+
+  atualizarParticulasImpacto(dt) {
+
+    const tempo = Math.max(0, dt);
+    const fatorTempo = Math.min(tempo / 16.67, 3);
+
+    for (const particula of this.particulasImpacto) {
+
+      if (!particula.ativa) continue;
+
+      // Diminuir o tempo de vida
+      particula.tempoVida -= tempo;
+
+      if (particula.tempoVida <= 0) {
+        particula.ativa = false;
+        continue;
+      }
+
+      // Movimentar a partícula
+      particula.x +=
+        particula.velocidadeX * fatorTempo;
+
+      particula.y +=
+        particula.velocidadeY * fatorTempo;
+
+      // Reduzir gradualmente a velocidade
+      particula.velocidadeX *=
+        Math.pow(0.96, fatorTempo);
+
+      particula.velocidadeY *=
+        Math.pow(0.96, fatorTempo);
+
+      // Transparência proporcional ao tempo restante
+      particula.opacidade = Math.max(
+        0,
+        Math.min(
+          1,
+          particula.tempoVida /
+          particula.tempoMaximo
+        )
+      );
+    }
+
+    // Remover partículas que terminaram
+    this.particulasImpacto =
+      this.particulasImpacto.filter(
+        particula => particula.ativa
+      );
+  },
+
+
+
+
+  // ==========================================
+  // DESENHAR PARTÍCULAS DA EXPLOSÃO
+  // ==========================================
+
+  desenharParticulasImpacto(ctx, cameraX, cameraY) {
+
+    for (const particula of this.particulasImpacto) {
+
+      if (!particula.ativa) continue;
+
+      const x = particula.x - cameraX;
+      const y = particula.y - cameraY;
+
+      ctx.save();
+
+      // Transparência gradual
+      ctx.globalAlpha = particula.opacidade ?? 1;
+
+      // Brilho da partícula
+      ctx.shadowColor = particula.cor;
+      ctx.shadowBlur = 12;
+
+      // Desenhar partícula
+      ctx.fillStyle = particula.cor;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        x,
+        y,
+        particula.tamanho,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+
+
+
+
+  // ==========================================
+  // DEFESA ESPECIAL — DISPARO MULTIDIRECIONAL
+  // ==========================================
+
+  criarRajadaDefesa() {
+
+    if (
+      !this.ativo ||
+      this.derrotado ||
+      !this.defesaAtiva
+    ) {
+      return;
+    }
+
+    const centroX = this.x + this.largura / 2;
+    const centroY = this.y + this.altura / 2;
+
+    const quantidade = this.quantidadeDirecoesDefesa;
+    const velocidade = this.velocidadeBolaDefesa;
+    const tamanho = 32;
+
+    // Criar uma bola para cada direção
+    for (let i = 0; i < quantidade; i++) {
+
+      const angulo =
+        (Math.PI * 2 * i) / quantidade;
+
+      const direcaoX = Math.cos(angulo);
+      const direcaoY = Math.sin(angulo);
+
+      this.projeteisDefesa.push({
+
+        x: centroX - tamanho / 2,
+        y: centroY - tamanho / 2,
+
+        largura: tamanho,
+        altura: tamanho,
+
+        velocidadeX: direcaoX * velocidade,
+        velocidadeY: direcaoY * velocidade,
+
+        dano: this.danoBolaDefesa,
+
+        tempoVida: 2000,
+
+        ativa: true
+      });
+    }
+
+    console.log(
+      "🔥 RAJADA MULTIDIRECIONAL CRIADA!",
+      quantidade,
+      "bolas de fogo",
+      "Total ativo:",
+      this.projeteisDefesa.length
+    );
+  },
+
+
+  // ==========================================
+  // MOVIMENTAÇÃO DAS BOLAS DA DEFESA ESPECIAL
+  // ==========================================
+
+  
+  // ==========================================
+  // PROJÉTEIS DA DEFESA ESPECIAL
+  // MOVIMENTO + TEMPO DE VIDA + COLISÃO
+  // ==========================================
+
+  atualizarProjeteisDefesa(dt, jogador, vidaHeroi) {
+
+    const fatorTempo = Math.min(
+      Math.max(dt, 0) / 16.67,
+      3
+    );
+
+    for (const bola of this.projeteisDefesa) {
+
+      if (!bola.ativa) continue;
+
+      // Tempo máximo de existência
+      bola.tempoVida -= Math.max(0, dt);
+
+      if (bola.tempoVida <= 0) {
+        bola.ativa = false;
+        continue;
+      }
+
+      // Movimentação
+      bola.x += bola.velocidadeX * fatorTempo;
+      bola.y += bola.velocidadeY * fatorTempo;
+
+      // ======================================
+      // COLISÃO COM O HERÓI
+      // ======================================
+
+      if (jogador && vidaHeroi) {
+
+        
+
+        const colisao =
+          bola.x < jogador.x + jogador.largura &&
+          bola.x + bola.largura > jogador.x &&
+          bola.y < jogador.y + jogador.altura &&
+          bola.y + bola.altura > jogador.y;
+
+        if (colisao) {
+
+          
+
+          // A bola desaparece ao atingir o herói
+          bola.ativa = false;
+
+          
+          // ==========================================
+          // EXPLOSÃO AO ATINGIR O HERÓI
+          // ==========================================
+
+          this.criarParticulasImpacto(
+            bola.x + bola.largura / 2,
+            bola.y + bola.altura / 2
+          );
+
+          
+          this.criarClaraoImpacto(
+              bola.x + bola.largura / 2,
+              bola.y + bola.altura / 2
+          );
+
+          
+          this.ativarTremorImpacto();
+
+
+
+
+          // Aplicar dano somente se vulnerável
+          if (
+            vidaHeroi.valor > 0 &&
+            (vidaHeroi.tempoDano || 0) <= 0
+          ) {
+
+            vidaHeroi.valor = Math.max(
+              0,
+              vidaHeroi.valor - bola.dano
+            );
+
+            // 1 segundo de invulnerabilidade
+            vidaHeroi.tempoDano = 1000;
+
+            // Animação de dano ou morte
+            if (window.AnimacoesHeroi) {
+
+              if (vidaHeroi.valor <= 0) {
+                AnimacoesHeroi.iniciarMorte();
+              } else {
+                AnimacoesHeroi.iniciarDano();
+              }
+            }
+
+            console.log(
+              "🔥 BOLA ESPECIAL ATINGIU O HERÓI!",
+              "Dano:", bola.dano,
+              "Vida restante:", vidaHeroi.valor
+            );
+          }
+
+          continue;
+        }
+      }
+    }
+
+    // Remover todas as bolas desativadas
+    this.projeteisDefesa =
+      this.projeteisDefesa.filter(
+        bola => bola.ativa
+      );
+  },
+
+
+
 
   // ==========================================
   // ATUALIZAR BOLAS DE FOGO
@@ -363,6 +873,62 @@ window.RaioDeFogo = {
     }
   },
 
+  
+  // ==========================================
+  // DESENHAR BOLAS DA DEFESA MULTIDIRECIONAL
+  // ==========================================
+
+  desenharProjeteisDefesa(ctx, cameraX, cameraY) {
+
+    for (const bola of this.projeteisDefesa) {
+
+      if (!bola.ativa) continue;
+
+      const centroX =
+        bola.x - cameraX + bola.largura / 2;
+
+      const centroY =
+        bola.y - cameraY + bola.altura / 2;
+
+      ctx.save();
+
+      // Brilho externo
+      ctx.shadowColor = "#ff4500";
+      ctx.shadowBlur = 25;
+
+      // Gradiente de fogo
+      const gradiente = ctx.createRadialGradient(
+        centroX,
+        centroY,
+        2,
+        centroX,
+        centroY,
+        bola.largura / 2
+      );
+
+      gradiente.addColorStop(0, "#ffffff");
+      gradiente.addColorStop(0.3, "#ffff00");
+      gradiente.addColorStop(0.6, "#ff8800");
+      gradiente.addColorStop(1, "#ff2200");
+
+      ctx.fillStyle = gradiente;
+
+      ctx.beginPath();
+      ctx.arc(
+        centroX,
+        centroY,
+        bola.largura / 2,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+      ctx.restore();
+    }
+  },
+
+
+
   // ==========================================
   // ATAQUE COM CONSUMO DE ENERGIA
   // ==========================================
@@ -390,8 +956,13 @@ window.RaioDeFogo = {
     }
 
     this.atacando = true;
+
+    this.tipoAtaque = "bola_de_fogo";
+
     this.estado = "attack_01";
     this.bolaDisparada = false;
+
+    this.acertouNesteAtaque = false;
 
     this.frame = 0;
     this.tempoAnimacao = 0;
@@ -405,6 +976,42 @@ window.RaioDeFogo = {
     return true;
   },
 
+
+  // ==========================================
+  // ATAQUE CORPO A CORPO — SOCO
+  // ==========================================
+
+  iniciarSoco() {
+
+    if (
+      !this.ativo ||
+      this.derrotado ||
+      this.atacando ||
+      this.defesaAtiva
+    ) {
+      return false;
+    }
+
+    // Iniciar animação de soco
+    this.atacando = true;
+    this.tipoAtaque = "soco";
+    this.estado = "attack_01";
+
+    // Não lançar bola de fogo
+    this.bolaDisparada = true;
+
+    // Reiniciar controle do dano
+    this.acertouNesteAtaque = false;
+
+    // Reiniciar animação
+    this.frame = 0;
+    this.tempoAnimacao = 0;
+    this.animacaoAnterior = "attack_01";
+
+    this.movendo = false;
+
+    return true;
+  },
   // ==========================================
   // INTELIGÊNCIA ARTIFICIAL
   // ==========================================
@@ -701,6 +1308,8 @@ window.RaioDeFogo = {
     // Preparar duração da proteção
     this.tempoDefesa = this.duracaoDefesa;
 
+    this.tempoRajadaDefesa = 0;
+
     console.log(
       "🔥 SUPER RAIO DE FOGO — DEFESA ATIVADA!"
     );
@@ -712,95 +1321,96 @@ window.RaioDeFogo = {
   // ATUALIZAR ANIMAÇÃO DA DEFESA ESPECIAL
   // ==========================================
 
+  
   atualizarDefesa(dt) {
 
     if (!this.defesaAtiva || this.derrotado) {
       return;
     }
 
-    // Contar tempo entre os frames
+    
+    // ==========================================
+    // ATUALIZAR BOLAS DA DEFESA ESPECIAL
+    // ==========================================
+
+    // Continuar movimentando as bolas
+    // mesmo depois que a defesa terminar
+    this.atualizarProjeteisDefesa(dt);
+
+
+    // Contar o tempo total da defesa
+    this.tempoDefesa = Math.max(
+      0,
+      this.tempoDefesa - dt
+    );
+
+    // Atualizar o tempo da animação
     this.tempoFrameDefesa += dt;
 
-    // FASE 1 — FRAMES 01 ATÉ 05
-    if (this.faseDefesa === "inicio") {
+    
+    // ==========================================
+    // DISPAROS AUTOMÁTICOS DA DEFESA ESPECIAL
+    // ==========================================
 
-      if (
-        this.tempoFrameDefesa >=
-        this.intervaloFrameDefesa
-      ) {
+    this.tempoRajadaDefesa += dt;
 
-        this.tempoFrameDefesa = 0;
+    while (
+      this.tempoRajadaDefesa >=
+      this.intervaloRajadaDefesa
+    ) {
 
-        if (this.frameDefesa < 4) {
-          this.frameDefesa++;
-        }
+      this.tempoRajadaDefesa -=
+        this.intervaloRajadaDefesa;
 
-        // Chegou ao frame 05
-        if (this.frameDefesa === 4) {
-          this.faseDefesa = "sustentando";
-          this.tempoDefesa = this.duracaoDefesa;
-        }
-      }
-
-      return;
+      // Disparar 8 bolas em direções diferentes
+      this.criarRajadaDefesa();
     }
 
-    // FASE 2 — MANTER O FRAME 05
-    if (this.faseDefesa === "sustentando") {
 
-      this.frameDefesa = 4;
+    // Reproduzir todos os 8 frames continuamente
+    while (
+      this.tempoFrameDefesa >= this.intervaloFrameDefesa
+    ) {
 
-      this.tempoDefesa -= dt;
+      this.tempoFrameDefesa -=
+        this.intervaloFrameDefesa;
 
-      if (this.tempoDefesa <= 0) {
+      this.frameDefesa++;
 
-        this.tempoDefesa = 0;
-        this.faseDefesa = "finalizando";
-        this.tempoFrameDefesa = 0;
-
+      // Reiniciar após o último frame
+      if (this.frameDefesa >= this.sprites.defesa.length) {
+        this.frameDefesa = 0;
       }
-
-      return;
     }
 
-    // FASE 3 — FRAMES 06, 07 E 08
-    if (this.faseDefesa === "finalizando") {
+    // Encerrar a defesa após 4 segundos
+    if (this.tempoDefesa <= 0) {
 
-      if (
-        this.tempoFrameDefesa >=
-        this.intervaloFrameDefesa
-      ) {
+      this.defesaAtiva = false;
 
-        this.tempoFrameDefesa = 0;
-        this.frameDefesa++;
+      this.estado = "aguardando";
+      this.atacando = false;
+      this.movendo = false;
+      this.bolaDisparada = false;
 
-        // Terminou o frame 08
-        if (this.frameDefesa >= 7) {
+      // Reiniciar animações
+      this.frame = 0;
+      this.tempoAnimacao = 0;
+      this.animacaoAnterior = null;
 
-          this.defesaAtiva = false;
-          
-          this.estado = "aguardando";
-          this.atacando = false;
-          this.movendo = false;
-          this.bolaDisparada = false;
+      this.frameDefesa = 0;
+      this.tempoFrameDefesa = 0;
 
-          this.frame = 0;
-          this.tempoAnimacao = 0;
-          this.animacaoAnterior = null;
+      // Iniciar recarga da defesa
+      this.tempoRecargaDefesa =
+        this.recargaDefesa;
 
-          this.frameDefesa = 0;
-          this.tempoFrameDefesa = 0;
-          this.faseDefesa = "inicio";
-
-          this.tempoRecargaDefesa = this.recargaDefesa;
-
-          console.log(
-            "🔥 DEFESA FINALIZADA! Voltando ao combate."
-          );
-        }
-      }
+      console.log(
+        "🔥 DEFESA FINALIZADA!"
+      );
     }
   },
+
 
   // ==========================================
   // DANO POR CONTATO — DEFESA ESPECIAL
@@ -1084,6 +1694,27 @@ window.RaioDeFogo = {
       return;
     }
 
+    
+    // Atualizar partículas das explosões
+    this.atualizarParticulasImpacto(dt);
+
+    
+    this.atualizarClaroesImpacto(dt);
+
+    
+    this.atualizarTremorImpacto(dt);
+
+
+    // ==========================================
+    // ATUALIZAR BOLAS DA DEFESA ESPECIAL
+    // ==========================================
+
+    this.atualizarProjeteisDefesa(
+      dt,
+      jogador,
+      vidaHeroi
+    );
+
     // ==========================================
     // CONTROLE DA DEFESA ESPECIAL
     // ==========================================
@@ -1151,6 +1782,8 @@ window.RaioDeFogo = {
     // RECUPERAR ENERGIA
     this.atualizarEnergia(dt);
 
+    
+
     // ATUALIZAR BOLAS DE FOGO
     this.atualizarProjeteis(
       dt,
@@ -1187,19 +1820,62 @@ window.RaioDeFogo = {
     // ATAQUE AUTOMÁTICO
     // ==========================================
 
+    // ==========================================
+    // ATAQUE AUTOMÁTICO
+    // SOCO OU BOLA DE FOGO
+    // ==========================================
+
     if (
       this.heroiDetectado &&
       !this.atacando &&
       this.tempoRecarga <= 0 &&
+      jogador &&
       vidaHeroi &&
       vidaHeroi.valor > 0
     ) {
 
-      // SÓ RECARREGA SE ATACAR
-      if (this.atacar()) {
+      const centroChefao =
+        this.x + this.largura / 2;
+
+      const centroHeroi =
+        jogador.x + jogador.largura / 2;
+
+      const distanciaX = Math.abs(
+        centroHeroi - centroChefao
+      );
+
+      const distanciaY = Math.abs(
+        (this.y + this.altura / 2) -
+        (jogador.y + jogador.altura / 2)
+      );
+
+      // Verificar se o herói está
+      // ao alcance do soco
+      const podeDarSoco =
+        distanciaX <= this.alcanceSoco &&
+        distanciaY <= 90;
+
+      let ataqueIniciado = false;
+
+      if (podeDarSoco) {
+
+        // ATAQUE CORPO A CORPO
+        ataqueIniciado = this.iniciarSoco();
+
+      } else {
+
+        // ATAQUE À DISTÂNCIA
+        ataqueIniciado = this.atacar();
+
+      }
+
+      // Aplicar recarga somente
+      // quando um ataque for iniciado
+      if (ataqueIniciado) {
 
         this.tempoRecarga =
           this.recargaAtaque;
+
       }
     }
 
@@ -1236,31 +1912,119 @@ window.RaioDeFogo = {
       this.tempoAnimacao = 0;
       this.frame++;
 
-      // DISPARAR BOLA NO FRAME 3
+      // ==========================================
+      // COLISÃO DO SOCO — RAIO DE FOGO
+      // ==========================================
 
       if (
         this.atacando &&
+        this.tipoAtaque === "soco" &&
+        this.frame >= 2 &&
+        this.frame <= 3 &&
+        !this.acertouNesteAtaque &&
+        jogador &&
+        vidaHeroi
+      ) {
+
+        // Permitir apenas uma tentativa
+        // de acerto por animação
+        this.acertouNesteAtaque = true;
+
+        const alcance = 45;
+
+        // Caixa de colisão do soco
+        const hitbox = {
+          x: this.direcao === 1
+            ? this.x + this.largura
+            : this.x - alcance,
+
+          y: this.y + 20,
+
+          w: alcance,
+          h: this.altura - 40
+        };
+
+        // Caixa de colisão do herói
+        const corpoHeroi = {
+          x: jogador.x,
+          y: jogador.y,
+          w: jogador.largura,
+          h: jogador.altura
+        };
+
+        // Verificar colisão e invulnerabilidade
+        const colisao =
+          hitbox.x < corpoHeroi.x + corpoHeroi.w &&
+          hitbox.x + hitbox.w > corpoHeroi.x &&
+          hitbox.y < corpoHeroi.y + corpoHeroi.h &&
+          hitbox.y + hitbox.h > corpoHeroi.y;
+
+        if (
+          colisao &&
+          vidaHeroi.valor > 0 &&
+          (vidaHeroi.tempoDano || 0) <= 0
+        ) {
+
+          vidaHeroi.valor = Math.max(
+            0,
+            vidaHeroi.valor - this.danoSoco
+          );
+
+          // Invulnerabilidade temporária
+          vidaHeroi.tempoDano = 1000;
+
+          // Animação de dano ou morte
+          if (window.AnimacoesHeroi) {
+
+            if (vidaHeroi.valor <= 0) {
+              AnimacoesHeroi.iniciarMorte();
+            } else {
+              AnimacoesHeroi.iniciarDano();
+            }
+          }
+        }
+      }
+
+      // DISPARAR BOLA NO FRAME 3
+
+      // ==========================================
+      // DISPARAR BOLA DE FOGO NO FRAME 3
+      // ==========================================
+
+      if (
+        this.atacando &&
+        this.tipoAtaque === "bola_de_fogo" &&
         this.frame === 3 &&
         !this.bolaDisparada
       ) {
 
         this.criarBolaDeFogo();
+
         this.bolaDisparada = true;
       }
-
       // FINALIZAR ANIMAÇÃO DE ATAQUE
 
       if (
         this.atacando &&
-        this.frame >=
-          this.sprites.attack_01.length
+        this.frame >= this.sprites.attack_01.length
       ) {
 
+        // Encerrar o ataque atual
         this.atacando = false;
+
+        // Limpar o tipo de ataque
+        this.tipoAtaque = null;
+
+        // Reiniciar controle do soco
+        this.acertouNesteAtaque = false;
+
+        // Reiniciar animação
         this.frame = 0;
+        this.tempoAnimacao = 0;
         this.animacaoAnterior = null;
 
-      } else if (!this.atacando) {
+      } 
+      else if (!this.atacando) {
 
         const quantidade =
           this.sprites[animacaoAtual].length;
@@ -1281,6 +2045,27 @@ window.RaioDeFogo = {
     if (!this.ativo) {
       return;
     }
+
+    
+    // ==========================================
+    // DESENHAR PROJÉTEIS DA DEFESA ESPECIAL
+    // ==========================================
+
+    this.desenharProjeteisDefesa(
+      ctx,
+      cameraX,
+      cameraY
+    );
+
+    
+    // Desenhar partículas das explosões
+    this.desenharParticulasImpacto(ctx, cameraX, cameraY);
+
+    
+    this.desenharClaroesImpacto(ctx, cameraX, cameraY);
+
+
+
 
     // ANIMAÇÃO DE DERROTA
 
@@ -1312,6 +2097,8 @@ window.RaioDeFogo = {
         ctx.restore();
       }
 
+
+      // Impedir desenho de RUN, ATQ1 e IDLE
       return;
     }
 

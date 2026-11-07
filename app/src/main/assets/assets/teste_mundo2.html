@@ -1,0 +1,1042 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0,
+maximum-scale=1.0, user-scalable=no">
+
+<title>Choque no Sistema Remake — Mundo 2</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #070a16;
+    color: white;
+    font-family: Arial, sans-serif;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.jogo {
+    position: relative;
+    width: min(100vw, 177.7778dvh);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    touch-action: none;
+}
+
+.hud {
+    position: absolute;
+    left: 2%;
+    top: 2%;
+
+    background: rgba(7, 11, 28, 0.85);
+    padding: 8px 12px;
+
+    border: 1px solid #ad8cff;
+    border-radius: 8px;
+
+    font-size: clamp(10px, 1.7vw, 17px);
+    pointer-events: none;
+}
+
+.controles {
+    position: absolute;
+    bottom: 4%;
+    left: 2%;
+
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    background: rgba(24, 43, 94, 0.86);
+    color: white;
+
+    border: 2px solid #6ebcff;
+    border-radius: 10px;
+
+    padding: 12px 20px;
+    font-weight: bold;
+
+    touch-action: none;
+    user-select: none;
+}
+
+.nota {
+    position: absolute;
+    right: 2%;
+    bottom: 4%;
+
+    font-size: clamp(9px, 1.2vw, 13px);
+    background: rgba(0, 0, 0, 0.65);
+
+    padding: 7px;
+    max-width: 48%;
+    text-align: right;
+}
+
+/* HUD RESPONSIVA DO HERÓI */
+
+.hud {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    width: clamp(85px, 20cqw, 200px);
+    text-align: left;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 8px;
+    padding: clamp(4px, 0.8cqw, 10px);
+    font-size: clamp(9px, 1.5cqw, 15px);
+    pointer-events: none;
+    z-index: 6;
+}
+
+.barra {
+    height: 12px;
+    background: #333;
+    border: 1px solid white;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+#vidaPreenchimento {
+    width: 100%;
+    height: 100%;
+    background: #22c55e;
+}
+
+@media (max-width: 650px) {
+    .hud {
+        padding: 5px;
+    }
+
+    .barra {
+        height: 8px;
+    }
+}
+
+/* =====================================
+   MUNDO 2 — PAINEL DE DIAGNÓSTICO
+===================================== */
+
+.hud-diagnostico {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    left: auto;
+
+    max-width: 45%;
+    padding: 6px 10px;
+
+    background: rgba(7, 11, 28, 0.85);
+    border: 1px solid #ad8cff;
+    border-radius: 8px;
+
+    color: white;
+    font-size: clamp(9px, 1.3cqw, 13px);
+    text-align: right;
+
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* GAME OVER — MUNDO 2 */
+
+#gameOver {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+
+    background: rgba(4, 8, 20, 0.90);
+
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+#gameOver.visivel {
+    display: flex;
+}
+
+#gameOver h1 {
+    margin: 0;
+    color: #ef4444;
+    font-size: clamp(30px, 7vw, 70px);
+    text-shadow: 0 0 25px #dc2626;
+    letter-spacing: 4px;
+}
+
+#gameOver p {
+    margin: 0;
+    color: #e2e8f0;
+    font-size: clamp(12px, 2.5vw, 20px);
+}
+
+#reiniciar {
+    min-width: 150px;
+    min-height: 45px;
+    padding: 10px 20px;
+
+    background: #15803d;
+    border: 2px solid #4ade80;
+    border-radius: 12px;
+
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =====================================
+   MUNDO 2 — MENSAGEM JOGO SALVO
+===================================== */
+
+#mensagemJogoSalvo {
+    display: none;
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9;
+
+    color: #4ade80;
+    font-size: clamp(18px, 3.5cqw, 34px);
+    font-weight: bold;
+    letter-spacing: 3px;
+    white-space: nowrap;
+
+    text-shadow:
+        0 0 10px #22c55e,
+        0 0 20px #16a34a;
+
+    pointer-events: none;
+}
+
+#mensagemJogoSalvo.visivel {
+    display: block;
+    animation: piscarJogoSalvo 0.4s infinite alternate;
+}
+
+@keyframes piscarJogoSalvo {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.25;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="jogo">
+
+    <canvas
+        id="canvas"
+        width="960"
+        height="540">
+    </canvas>
+
+    <!-- HUD ORIGINAL DO MUNDO 1 -->
+    <div class="hud">
+        <strong>HERÓI</strong>
+
+        <div class="barra">
+            <div id="vidaPreenchimento"></div>
+        </div>
+
+        <span id="vidaTexto">100 / 100 HP</span>
+    </div>
+
+    <!-- MUNDO 2 — MENSAGEM DE CHECKPOINT -->
+    <div id="mensagemJogoSalvo">
+        JOGO SALVO
+    </div>
+
+    <div class="hud-diagnostico" id="hud">
+        MUNDO 2 — CARREGANDO...
+    </div>
+
+    <!-- GAME OVER — MUNDO 2 -->
+    <div id="gameOver">
+        <h1>GAME OVER</h1>
+
+        <p>O herói foi derrotado!</p>
+
+        <button id="reiniciar">
+            TENTAR NOVAMENTE
+        </button>
+    </div>
+
+    <div class="controles">
+
+        <button id="esquerda">◀</button>
+
+        <button id="direita">▶</button>
+
+        <button id="pular">PULO</button>
+
+        <!-- BOTÃO DE SOCO ELÉTRICO -->
+        <button id="ataque1">ATQ 1</button>
+
+    </div>
+
+    <div class="nota">
+        TESTE DAS SPRITES
+        A/D ou ←/→ para andar
+        Espaço para pular
+    </div>
+
+</div>
+
+<!-- ARQUIVOS DO MUNDO 2 -->
+
+<script src="js/mundo2.js"></script>
+
+<script src="js/animacoes.js"></script>
+
+<!-- SISTEMA DE COMBATE DO HERÓI -->
+<script src="js/combate.js"></script>
+
+<script src="js/assassinos_sombras.js"></script>
+
+<script>
+
+"use strict";
+
+// =====================================
+// CANVAS
+// =====================================
+
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const hud =
+    document.getElementById("hud");
+
+// =====================================
+// CONTROLES
+// =====================================
+
+const teclas = {};
+
+// =====================================
+// HERÓI DE TESTE
+// =====================================
+
+const heroi = {
+
+    x: 200,
+    y: 855,
+
+    largura: 32,
+    altura: 55,
+
+    vx: 0,
+    vy: 0,
+
+    noChao: true,
+
+    voando: false,
+    subindoEscada: false,
+
+    pulosRestantes: 2
+
+};
+
+// =====================================
+// MUNDO 2 — SISTEMA DE VIDA DO HERÓI
+// =====================================
+
+const vidaHeroi = {
+    valor: 100,
+    maxima: 100,
+    tempoDano: 0
+};
+
+// =====================================
+// MUNDO 2 — SISTEMA DE GAME OVER
+// =====================================
+
+let gameOver = false;
+let tempoMorte = 0;
+
+const DURACAO_MORTE = 1200;
+
+// =====================================
+// MUNDO 2 — SISTEMA DE CHECKPOINTS
+// =====================================
+
+const CHAVE_CHECKPOINT_MUNDO2 =
+    "choque_remake_mundo2_checkpoint";
+
+const checkpointsMundo2 = {
+    1: 200,
+    2: 1250,
+    3: 2450,
+    4: 3650
+};
+
+let checkpointAtualMundo2 = 1;
+
+// =====================================
+// MUNDO 2 — CARREGAR CHECKPOINT
+// =====================================
+
+function carregarCheckpointMundo2() {
+
+    const salvo = Number(
+        localStorage.getItem(CHAVE_CHECKPOINT_MUNDO2)
+    );
+
+    if (
+        !Number.isInteger(salvo) ||
+        salvo < 1 ||
+        salvo > 4
+    ) {
+        return 1;
+    }
+
+    return salvo;
+}
+
+// =====================================
+// MUNDO 2 — EXIBIR MENSAGEM JOGO SALVO
+// =====================================
+
+let temporizadorJogoSalvo = null;
+
+function mostrarMensagemJogoSalvo() {
+
+    const mensagem = document.getElementById(
+        "mensagemJogoSalvo"
+    );
+
+    if (!mensagem) return;
+
+    // Reiniciar a animação
+    mensagem.classList.remove("visivel");
+
+    void mensagem.offsetWidth;
+
+    mensagem.classList.add("visivel");
+
+    // Cancelar temporizador anterior
+    if (temporizadorJogoSalvo !== null) {
+        clearTimeout(temporizadorJogoSalvo);
+    }
+
+    // Esconder após 2 segundos
+    temporizadorJogoSalvo = setTimeout(() => {
+
+        mensagem.classList.remove("visivel");
+
+        temporizadorJogoSalvo = null;
+
+    }, 2000);
+}
+
+function atualizarCheckpointMundo2() {
+
+    if (vidaHeroi.valor <= 0 || gameOver) {
+        return;
+    }
+
+    const areaAtual = Mundo2.obterArea(heroi.x);
+
+    if (!areaAtual) return;
+
+    const numeroArea = areaAtual.numero;
+
+    if (
+        numeroArea >= 1 &&
+        numeroArea <= 4 &&
+        numeroArea > checkpointAtualMundo2
+    ) {
+
+        checkpointAtualMundo2 = numeroArea;
+
+        localStorage.setItem(
+            CHAVE_CHECKPOINT_MUNDO2,
+            String(checkpointAtualMundo2)
+        );
+
+        // Mostrar confirmação visual do salvamento
+        mostrarMensagemJogoSalvo();
+
+        console.log(
+            "CHECKPOINT SALVO — ÁREA " +
+            checkpointAtualMundo2
+        );
+    }
+}
+
+function mostrarGameOver() {
+
+    if (gameOver) return;
+
+    gameOver = true;
+
+    document
+        .getElementById("gameOver")
+        .classList.add("visivel");
+
+    // Soltar todos os controles
+    Object.keys(teclas).forEach(
+        tecla => teclas[tecla] = false
+    );
+}
+
+// =====================================
+// MUNDO 2 — ATUALIZAR BARRA DE VIDA
+// =====================================
+
+function atualizarHUDVida() {
+
+    const preenchimento =
+        document.getElementById("vidaPreenchimento");
+
+    const textoVida =
+        document.getElementById("vidaTexto");
+
+    if (!preenchimento || !textoVida) return;
+
+    const percentual = Math.max(
+        0,
+        Math.min(
+            100,
+            (vidaHeroi.valor / vidaHeroi.maxima) * 100
+        )
+    );
+
+    preenchimento.style.width = percentual + "%";
+
+    preenchimento.style.background =
+        percentual > 50
+            ? "#22c55e"
+            : percentual > 25
+                ? "#f59e0b"
+                : "#ef4444";
+
+    textoVida.textContent =
+        vidaHeroi.valor +
+        " / " +
+        vidaHeroi.maxima +
+        " HP";
+}
+
+// =====================================
+// INICIALIZAR ANIMAÇÕES ORIGINAIS
+// =====================================
+
+AnimacoesHeroi.iniciar();
+
+// =====================================
+// MUNDO 2 — ASSASSINOS DAS SOMBRAS
+// =====================================
+
+AssassinosSombras.iniciar();
+
+// =====================================
+// MUNDO 2 — RESTAURAR POSIÇÃO SALVA
+// =====================================
+
+const reinicioCheckpoint = sessionStorage.getItem(
+    "mundo2_reiniciar_checkpoint"
+);
+
+if (reinicioCheckpoint !== null) {
+
+    sessionStorage.removeItem(
+        "mundo2_reiniciar_checkpoint"
+    );
+
+    const areaSalva = carregarCheckpointMundo2();
+
+    checkpointAtualMundo2 = areaSalva;
+
+    heroi.x = checkpointsMundo2[areaSalva];
+
+    heroi.vx = 0;
+    heroi.vy = 0;
+
+    vidaHeroi.valor = vidaHeroi.maxima;
+    vidaHeroi.tempoDano = 0;
+
+    console.log(
+        "HERÓI REINICIADO — ÁREA " + areaSalva
+    );
+}
+
+// =====================================
+// TEMPO DO JOGO
+// =====================================
+
+let ultimo = performance.now();
+
+let puloAnterior = false;
+
+// =====================================
+// CONTROLES TOUCH
+// =====================================
+
+function controlar(id, tecla) {
+
+    const botao =
+        document.getElementById(id);
+
+    botao.addEventListener(
+        "pointerdown",
+        evento => {
+
+            evento.preventDefault();
+
+            teclas[tecla] = true;
+
+            botao.setPointerCapture(
+                evento.pointerId
+            );
+
+        }
+    );
+
+    const soltar = () => {
+        teclas[tecla] = false;
+    };
+
+    botao.addEventListener(
+        "pointerup",
+        soltar
+    );
+
+    botao.addEventListener(
+        "pointercancel",
+        soltar
+    );
+
+    botao.addEventListener(
+        "lostpointercapture",
+        soltar
+    );
+
+}
+
+controlar("esquerda", "ArrowLeft");
+
+controlar("direita", "ArrowRight");
+
+controlar("pular", "Space");
+
+// =====================================
+// MUNDO 2 — CONTROLE DE ATAQUE
+// =====================================
+
+// Botão ATQ 1 no celular
+controlar("ataque1", "KeyJ");
+
+// =====================================
+// CONTROLES DO TECLADO
+// =====================================
+
+window.addEventListener(
+    "keydown",
+    evento => {
+
+        if ([
+            "ArrowLeft",
+            "ArrowRight",
+            "Space",
+            "KeyA",
+            "KeyD"
+        ].includes(evento.code)) {
+
+            evento.preventDefault();
+
+        }
+
+        teclas[evento.code] = true;
+
+    }
+);
+
+window.addEventListener(
+    "keyup",
+    evento => {
+
+        teclas[evento.code] = false;
+
+    }
+);
+
+window.addEventListener(
+    "blur",
+    () => {
+
+        Object.keys(teclas).forEach(
+            tecla => teclas[tecla] = false
+        );
+
+    }
+);
+
+// =====================================
+// LOOP PRINCIPAL DO MUNDO 2
+// =====================================
+
+function quadro(agora) {
+
+    const dt = Math.min(
+        Math.max(agora - ultimo, 0),
+        40
+    );
+
+    ultimo = agora;
+
+    const fator = dt / 16.6667;
+
+    // =====================================
+    // MOVIMENTO HORIZONTAL
+    // =====================================
+
+    const direita = !!(
+        teclas.ArrowRight ||
+        teclas.KeyD
+    );
+
+    const esquerda = !!(
+        teclas.ArrowLeft ||
+        teclas.KeyA
+    );
+
+    const direcao =
+        Number(direita) -
+        Number(esquerda);
+
+    heroi.vx = vidaHeroi.valor > 0 && !gameOver
+    ? direcao * 5
+    : 0;
+
+    heroi.x += heroi.vx * fator;
+
+    // LIMITES DO MUNDO
+
+    heroi.x = Math.max(
+        0,
+        Math.min(
+            Mundo2.largura - heroi.largura,
+            heroi.x
+        )
+    );
+
+    // =====================================
+    // PULO DUPLO
+    // =====================================
+
+    const pulo = !!teclas.Space;
+
+    const novoPulo =
+        pulo && !puloAnterior;
+
+    if (
+        novoPulo &&
+        heroi.pulosRestantes > 0
+    ) {
+
+        heroi.vy = -14;
+
+        heroi.noChao = false;
+
+        heroi.pulosRestantes--;
+
+    }
+
+    puloAnterior = pulo;
+
+    // =====================================
+    // GRAVIDADE
+    // =====================================
+
+    if (!heroi.noChao) {
+
+        heroi.vy = Math.min(
+            16,
+            heroi.vy +
+            Mundo2.gravidade * fator
+        );
+
+        heroi.y += heroi.vy * fator;
+
+        // COLISÃO COM O CHÃO
+
+        if (
+            heroi.y + heroi.altura >= 910
+        ) {
+
+            heroi.y =
+                910 - heroi.altura;
+
+            heroi.vy = 0;
+
+            heroi.noChao = true;
+
+            heroi.pulosRestantes = 2;
+
+        }
+
+    }
+
+    // =====================================
+    // MUNDO 2 — ATIVAR SOCO ELÉTRICO
+    // =====================================
+
+    // Detectar um novo pressionamento da tecla J
+    const ataquePressionado = !!teclas["KeyJ"];
+
+    if (
+        ataquePressionado &&
+        !window.ataque1PressionadoAnterior
+    ) {
+        // Executar animação e combo de socos
+        AnimacoesHeroi.iniciarAtaque("attack");
+    }
+
+    // Evitar repetir o ataque enquanto
+    // a tecla estiver pressionada
+    window.ataque1PressionadoAnterior =
+        ataquePressionado;
+
+    // =====================================
+    // ATUALIZAR ANIMAÇÕES
+    // =====================================
+
+    AnimacoesHeroi.atualizar(
+        heroi,
+        dt
+    );
+
+    // =====================================
+    // MUNDO 2 — DANO DO SOCO ELÉTRICO
+    // =====================================
+
+    // Obter a área de impacto do soco
+    const hitboxSoco = Combate.obterHitbox(
+        heroi,
+        AnimacoesHeroi
+    );
+
+    // Verificar se o soco atingiu um assassino
+    if (hitboxSoco) {
+        AssassinosSombras.receberAtaque(
+            hitboxSoco,
+            hitboxSoco.idGolpe
+        );
+    }
+
+    // ATUALIZAR ASSASSINOS DAS SOMBRAS
+    // Reduzir o tempo de invulnerabilidade
+    vidaHeroi.tempoDano = Math.max(
+        0,
+        vidaHeroi.tempoDano - dt
+    );
+
+    // Atualizar os Assassinos e permitir
+    // que seus golpes causem dano ao herói
+    AssassinosSombras.atualizar(
+        dt,
+        heroi,
+        vidaHeroi
+    );
+
+    // =====================================
+    // MUNDO 2 — DETECTAR MORTE DO HERÓI
+    // =====================================
+
+    if (vidaHeroi.valor <= 0 && !gameOver) {
+
+        tempoMorte += dt;
+
+        if (tempoMorte >= DURACAO_MORTE) {
+            mostrarGameOver();
+        }
+
+    }
+
+    // =====================================
+    // MUNDO 2 — COLETAR CORAÇÕES
+    // =====================================
+
+    AssassinosSombras.atualizarCoracoes(
+        heroi,
+        vidaHeroi
+    );
+
+    // Atualizar a barra após receber dano
+    atualizarHUDVida();
+
+    // =====================================
+    // CÂMERA HORIZONTAL
+    // =====================================
+
+    const cameraX = Math.max(
+        0,
+        Math.min(
+            Mundo2.largura - canvas.width,
+            heroi.x - canvas.width * 0.35
+        )
+    );
+
+    const cameraY = 480;
+
+    // =====================================
+    // DESENHAR MUNDO 2
+    // =====================================
+
+    Mundo2.desenhar(
+        ctx,
+        cameraX,
+        cameraY
+    );
+
+    // =====================================
+    // DESENHAR SPRITES DO HERÓI
+    // =====================================
+
+    const desenhou =
+        AnimacoesHeroi.desenhar(
+            ctx,
+            heroi,
+            cameraX,
+            cameraY 
+        );
+
+        // =====================================
+        // MUNDO 2 — DESENHAR ASSASSINOS
+        // =====================================
+
+        AssassinosSombras.desenhar(ctx, cameraX, cameraY);
+
+        // =====================================
+        // MUNDO 2 — DESENHAR CORAÇÕES
+        // =====================================
+
+        AssassinosSombras.desenharCoracoes(
+            ctx,
+            cameraX,
+            cameraY
+        );
+
+        
+    
+
+    // MARCADOR PROVISÓRIO
+    // CASO A SPRITE NÃO CARREGUE
+
+    if (!desenhou) {
+
+        ctx.fillStyle = "#39d9ff";
+
+        ctx.fillRect(
+            heroi.x - cameraX,
+            heroi.y - cameraY,
+            heroi.largura,
+            heroi.altura
+        );
+
+    }
+
+    // VERIFICAR CHECKPOINT DO MUNDO 2
+    atualizarCheckpointMundo2();
+
+    // =====================================
+    // IDENTIFICAR ÁREA ATUAL
+    // =====================================
+
+    const area =
+        Mundo2.obterArea(heroi.x);
+
+    hud.textContent =
+        "MUNDO 2 — ÁREA " +
+        area.numero +
+        ": " +
+        area.nome +
+        " | X: " +
+        Math.round(heroi.x) +
+        " | ANIMAÇÃO: " +
+        AnimacoesHeroi.estado;
+
+    // =====================================
+    // VERIFICAR IMAGEM DO CENÁRIO
+    // =====================================
+
+    if (
+        Mundo2.cenarioCompletoImagem.complete &&
+        Mundo2.cenarioCompletoImagem.naturalWidth === 0
+    ) {
+
+        hud.textContent =
+            "ERRO: imagem do Mundo 2 não encontrada";
+
+    }
+
+    requestAnimationFrame(quadro);
+
+}
+
+// =====================================
+// MUNDO 2 — REINICIAR NO CHECKPOINT
+// =====================================
+
+document
+    .getElementById("reiniciar")
+    .addEventListener("click", () => {
+
+        const areaSalva = carregarCheckpointMundo2();
+
+        sessionStorage.setItem(
+            "mundo2_reiniciar_checkpoint",
+            String(areaSalva)
+        );
+
+        window.location.reload();
+
+    });// =====================================
+// INICIAR JOGO
+// =====================================
+
+requestAnimationFrame(quadro);
+
+</script>
+
+</body>
+</html>

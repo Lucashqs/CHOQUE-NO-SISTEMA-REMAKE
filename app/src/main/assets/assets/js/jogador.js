@@ -424,14 +424,24 @@ window.Jogador = {
     }
 
     // LIMITES DO MUNDO
+    // =====================================
+    // LIMITES FÍSICOS DO MUNDO 1
+    // =====================================
+
+    // Impedir que o herói saia do cenário
+    const limiteMinimo = 0;
+
+    const limiteMaximo =
+      Mundo1.largura - this.largura;
+
     this.x = Math.max(
-      0,
-      Math.min(
-        Mundo1.largura - this.largura,
-        this.x
-      )
+      limiteMinimo,
+      Math.min(limiteMaximo, this.x)
     );
 
+    // A câmera terá limites próprios.
+    // Os bloqueios de combate continuam
+    // sendo controlados separadamente.
     // BLOQUEIO DO DISTRITO COMERCIAL
     const entradaDistrito = 1200;
 
@@ -453,48 +463,41 @@ window.Jogador = {
       }
     }
 
-    // BLOQUEIO DO BAIRRO INDUSTRIAL
-    const entradaIndustrial = 2400;
+    // =====================================
+    // BLOQUEIOS DE PROGRESSÃO — MUNDO 1
+    // =====================================
 
-    const distritoConcluido =
-      window.Inimigos &&
-      typeof Inimigos.distritoComercialConcluido === "function" &&
-      Inimigos.distritoComercialConcluido();
+    const bloqueiosAreas = [
+      {
+        entrada: 1200,
+        liberada: Inimigos.avenidaCentralConcluida()
+      },
+      {
+        entrada: 2400,
+        liberada: Inimigos.distritoComercialConcluido()
+      },
+      {
+        entrada: 3600,
+        liberada: Inimigos.bairroIndustrialConcluido()
+      }
+    ];
 
-    if (!distritoConcluido) {
-      const limiteHeroi =
-        entradaIndustrial - this.largura;
+    for (const bloqueio of bloqueiosAreas) {
 
+      // Área concluída: passagem livre
+      if (bloqueio.liberada) continue;
+
+      const limite = bloqueio.entrada;
+
+      // Impedir somente a entrada na área bloqueada
       if (
-        xAnterior + this.largura <= entradaIndustrial &&
-        this.x + this.largura > entradaIndustrial
+        xAnterior + this.largura <= limite &&
+        this.x + this.largura > limite
       ) {
-        this.x = limiteHeroi;
+        this.x = limite - this.largura;
         this.vx = 0;
       }
     }
-
-    // BLOQUEIO DA USINA ELÉTRICA
-    const entradaUsina = 3600;
-
-    const industrialConcluido =
-      window.Inimigos &&
-      typeof Inimigos.bairroIndustrialConcluido === "function" &&
-      Inimigos.bairroIndustrialConcluido();
-
-    if (!industrialConcluido) {
-      const limiteHeroi =
-        entradaUsina - this.largura;
-
-      if (
-        xAnterior + this.largura <= entradaUsina &&
-        this.x + this.largura > entradaUsina
-      ) {
-        this.x = limiteHeroi;
-        this.vx = 0;
-      }
-    }
-
     // GRAVIDADE
     
     // =====================================

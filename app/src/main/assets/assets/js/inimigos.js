@@ -209,35 +209,59 @@ window.Inimigos = {
   // LIBERAR NOVOS INIMIGOS
   // ==========================================
 
+  
   atualizarLiberacao() {
 
-    const quantidadeLiberada = Math.min(
-      this.lista.length,
-      this.quantidadeInicial +
-      this.totalDerrotados
+    if (!this.lista.length) return;
+
+    // Identificar a posição atual do herói
+    const posicaoHeroi =
+      window.Jogador
+        ? Jogador.x + Jogador.largura / 2
+        : 0;
+
+    // Identificar a área atual (0 a 3)
+    const areaAtual = Math.max(
+      0,
+      Math.min(
+        3,
+        Math.floor(posicaoHeroi / 1200)
+      )
     );
 
-    for (let i = 0; i < this.lista.length; i++) {
+    // Selecionar somente os inimigos da área
+    const inimigosArea = this.lista.filter(npc => {
+      const areaNpc = Math.floor(npc.origemX / 1200);
+      return areaNpc === areaAtual;
+    });
 
-      const npc = this.lista[i];
+    // Contar derrotas reais nesta área
+    const derrotadosArea = inimigosArea.filter(
+      npc => npc.derrotaContabilizada
+    ).length;
 
-      if (
-        i < quantidadeLiberada &&
-        !npc.liberado
-      ) {
+    // Dois iniciais + um por derrota
+    const quantidadeLiberada = Math.min(
+      inimigosArea.length,
+      this.quantidadeInicial + derrotadosArea
+    );
+
+    // Liberar somente os inimigos desta área
+    for (let i = 0; i < quantidadeLiberada; i++) {
+
+      const npc = inimigosArea[i];
+
+      if (!npc.liberado && !npc.derrotaContabilizada) {
 
         npc.liberado = true;
 
         console.log(
-          "SAQUEADOR LIBERADO:",
-          npc.id
+          `⚡ ÁREA ${areaAtual + 1} — SAQUEADOR ${npc.id} LIBERADO`
         );
-
       }
-
     }
-
   },
+
 
   // ==========================================
   // INICIALIZAR OS 20 SAQUEADORES
@@ -256,14 +280,19 @@ window.Inimigos = {
 
     this.carregarSprites();
 
+    
     const posicoes = [
 
+      // =====================================
+      // ÁREA 1 — AVENIDA CENTRAL
+      // X: 0 até 1200
+      // 5 SAQUEADORES
+      // =====================================
 
-      // AREA 2 - PRIMEIRO PREDIO
       {
         x: 320,
         y: 945,
-        esquerda: 30,
+        esquerda: 0,
         direita: 1200
       },
 
@@ -274,9 +303,8 @@ window.Inimigos = {
         direita: 1200
       },
 
-      // AREA 3 - SEGUNDO PREDIO
       {
-        x: 720,
+        x: 650,
         y: 945,
         esquerda: 0,
         direita: 1200
@@ -289,114 +317,127 @@ window.Inimigos = {
         direita: 1200
       },
 
-      // AREA 4 - TERCEIRO PREDIO
       {
-        x: 1170,
+        x: 1000,
         y: 945,
         esquerda: 0,
         direita: 1200
       },
 
-      {
-        x: 1320,
-        y: 945,
-        esquerda: 1200,
-        direita: 1200
-      },
-
-      // AREA 5 - QUARTO PREDIO
-      {
-        x: 1620,
-        y: 945,
-        esquerda: 0,
-        direita: 1200
-      },
+      // =====================================
+      // ÁREA 2 — DISTRITO COMERCIAL
+      // X: 1200 até 2400
+      // 5 SAQUEADORES
+      // =====================================
 
       {
-        x: 1770,
-        y: 945,
-        esquerda: 0,
-        direita: 1200
-      },
-
-      // AREA 6 - AVENIDA CENTRAL
-      {
-        x: 2050,
+        x: 1400,
         y: 945,
         esquerda: 1200,
         direita: 2400
       },
 
       {
-        x: 2250,
+        x: 1550,
         y: 945,
         esquerda: 1200,
         direita: 2400
       },
 
       {
-        x: 2450,
+        x: 1750,
         y: 945,
         esquerda: 1200,
         direita: 2400
       },
 
       {
-        x: 2650,
+        x: 2000,
         y: 945,
         esquerda: 1200,
         direita: 2400
       },
 
       {
-        x: 2850,
+        x: 2200,
         y: 945,
         esquerda: 1200,
         direita: 2400
       },
 
-      // AREA 7 - AVENIDA AVANCADA
+      // =====================================
+      // ÁREA 3 — BAIRRO INDUSTRIAL
+      // X: 2400 até 3600
+      // 5 SAQUEADORES
+      // =====================================
+
       {
-        x: 3100,
+        x: 2600,
         y: 945,
         esquerda: 2400,
         direita: 3600
       },
 
       {
-        x: 3350,
+        x: 2750,
         y: 945,
         esquerda: 2400,
         direita: 3600
       },
 
       {
-        x: 3600,
+        x: 2950,
         y: 945,
         esquerda: 2400,
         direita: 3600
       },
 
-      // AREA 8 - FINAL DA FASE
       {
-        x: 3900,
+        x: 3150,
         y: 945,
-        esquerda: 3600,
-        direita: 4550
+        esquerda: 2400,
+        direita: 3600
       },
 
       {
-        x: 4200,
+        x: 3400,
+        y: 945,
+        esquerda: 2400,
+        direita: 3600
+      },
+
+      // =====================================
+      // ÁREA 4 — USINA ELÉTRICA
+      // X: 3600 até 4800
+      // 4 SAQUEADORES
+      // =====================================
+
+      {
+        x: 3800,
         y: 945,
         esquerda: 3600,
-        direita: 4550
+        direita: 4800
       },
 
       {
-        x: 4550,
+        x: 4000,
         y: 945,
         esquerda: 3600,
-        direita: 4550
+        direita: 4800
+      },
+
+      {
+        x: 4250,
+        y: 945,
+        esquerda: 3600,
+        direita: 4800
+      },
+
+      {
+        x: 4500,
+        y: 945,
+        esquerda: 3600,
+        direita: 4800
       }
 
     ];
@@ -591,14 +632,28 @@ window.Inimigos = {
   // LIMITES DE MOVIMENTO
   // ==========================================
 
+  
   limitarMovimento(npc) {
 
-    const minimo =
-      npc.limiteEsquerdo;
+    // Identificar a área original do saqueador
+    const area = Math.max(
+      0,
+      Math.min(
+        3,
+        Math.floor(npc.origemX / 1200)
+      )
+    );
 
-    const maximo =
-      npc.limiteDireito -
-      npc.largura;
+    // Limites físicos da área
+    const inicioArea = area * 1200;
+    const fimArea = Math.min(
+      Mundo1.largura,
+      inicioArea + 1200
+    );
+
+    // Impedir que o saqueador saia da área
+    const minimo = inicioArea;
+    const maximo = fimArea - npc.largura;
 
     npc.x = Math.max(
       minimo,
@@ -611,56 +666,72 @@ window.Inimigos = {
   // PATRULHA
   // ==========================================
 
+
   patrulhar(npc, fator, dt) {
 
+    // Aguardar antes de mudar de direção
     if (npc.tempoEspera > 0) {
-
       npc.tempoEspera = Math.max(
         0,
         npc.tempoEspera - dt
       );
 
       this.mudarEstado(npc, "idle");
-
       return;
     }
 
-    const velocidade =
-      this.configuracaoIA.velocidadePatrulha;
+    // Identificar a área original
+    const area = Math.max(
+      0,
+      Math.min(
+        3,
+        Math.floor(npc.origemX / 1200)
+      )
+    );
 
+    const inicioArea = area * 1200;
+    const fimArea = Math.min(
+      Mundo1.largura,
+      inicioArea + 1200
+    );
+
+    // Margem de segurança da patrulha
+    const margemSeguranca = 100;
+
+    const limiteEsquerdo =
+      inicioArea + margemSeguranca;
+
+    const limiteDireito =
+      fimArea - margemSeguranca - npc.largura;
+
+    // Movimentação de patrulha
     npc.x +=
-      velocidade *
+      this.configuracaoIA.velocidadePatrulha *
       npc.direcao *
       fator;
 
     this.mudarEstado(npc, "run");
 
-    if (npc.x <= npc.limiteEsquerdo) {
-
-      npc.x = npc.limiteEsquerdo;
+    // Chegou à borda esquerda
+    if (npc.x <= limiteEsquerdo) {
+      npc.x = limiteEsquerdo;
       npc.direcao = 1;
 
       npc.tempoEspera =
         this.configuracaoIA.tempoEsperaPatrulha;
-
     }
 
-    if (
-      npc.x + npc.largura >=
-      npc.limiteDireito
-    ) {
-
-      npc.x =
-        npc.limiteDireito -
-        npc.largura;
-
+    // Chegou à borda direita
+    if (npc.x >= limiteDireito) {
+      npc.x = limiteDireito;
       npc.direcao = -1;
 
       npc.tempoEspera =
         this.configuracaoIA.tempoEsperaPatrulha;
-
     }
 
+    // Garantir que permaneça na sua área
+    this.limitarMovimento(npc);
   },
 
   // ==========================================
@@ -823,6 +894,8 @@ window.Inimigos = {
   // ==========================================
 
   atualizar(dt, jogador, vidaHeroi) {
+    // Verificar entrada em novas áreas
+    this.atualizarLiberacao();
 
     const fator =
       Math.min(dt / 16.67, 3);
@@ -920,6 +993,38 @@ window.Inimigos = {
 
         continue;
       }
+
+      
+      // =====================================
+      // SUPER ONDA ELÉTRICA — ARRASTO
+      // =====================================
+
+      if (
+        window.SuperOndaEletrica &&
+        SuperOndaEletrica.ativo &&
+        SuperOndaEletrica.arrastados.has(npc)
+      ) {
+
+        // Impedir que a inteligência artificial
+        // movimente ou faça o saqueador atacar.
+
+        npc.tempoRecarga = Math.max(
+          npc.tempoRecarga,
+          300
+        );
+
+        npc.tempoEspera = 300;
+
+        // Manter a animação de dano.
+        if (npc.estado !== "damage") {
+          this.mudarEstado(npc, "damage");
+        }
+
+        // Não executar patrulha, perseguição
+        // nem ataques durante o arrasto.
+        continue;
+      }
+
 
       // ======================================
       // DANO RECEBIDO
@@ -1587,13 +1692,16 @@ window.Inimigos = {
 
   },
 
-  totalDerrotados(){
+  
+  todosSaqueadoresDerrotados() {
     return (
-      this.lista.length > 0 && this.lista.every(
-        npc => npc.derrotaContabilizada
+      this.lista.length > 0 &&
+      this.lista.every(
+        npc => npc.derrotaContabilizada === true
       )
     );
   },
+
 
     // VERIFICAR INIMIGOS DA AVENIDA CENTRAL
   avenidaCentralConcluida() {

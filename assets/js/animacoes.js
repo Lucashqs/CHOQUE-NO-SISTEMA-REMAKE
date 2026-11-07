@@ -56,6 +56,11 @@ window.AnimacoesHeroi = {
       velocidade: 130
     },
 
+    super_onda_eletrica: {
+      total: 16,
+      velocidade: 100
+    },
+
     run: {
       total: 4,
       velocidade: 90
@@ -256,7 +261,13 @@ window.AnimacoesHeroi = {
        
         if (estado === "voo") {
           imagem.src = `voo/voo_direita_${numero}.png`;
-        } else {
+        } else if(estado === "super_onda_eletrica"){
+          imagem.src =
+            `sprites/heroi/super_onda_eletrica/onda_eletrica_${String(numero).padStart(2, "0")}.png`;
+
+        } 
+        
+        else {
           imagem.src = `sprites/heroi/${estado}/${estado}_${numero}.png`;
         }
 
@@ -515,6 +526,42 @@ window.AnimacoesHeroi = {
     this.idGolpe++;
   },
 
+
+  // ==========================================
+  // SUPER ONDA ELÉTRICA — INICIAR ANIMAÇÃO
+  // ==========================================
+
+  superOndaAtiva: false,
+
+  iniciarSuperOndaEletrica() {
+
+    if (
+      this.superOndaAtiva ||
+      this.atacando ||
+      this.recebendoDano ||
+      this.morrendo
+    ) {
+      return false;
+    }
+
+    this.superOndaAtiva = true;
+
+    this.cancelarCombo();
+
+    this.estado = "super_onda_eletrica";
+
+    this.frame = 0;
+    this.tempo = 0;
+
+    console.log(
+      "⚡ SUPER ONDA ELÉTRICA INICIADA!"
+    );
+
+    return true;
+  },
+
+
+
   // ==========================================
   // INICIAR ATAQUE
   // ==========================================
@@ -717,6 +764,97 @@ window.AnimacoesHeroi = {
   // ==========================================
 
   atualizar(jogador, deltaTime) {
+
+    
+    // ======================================
+    // SUPER ONDA ELÉTRICA — 16 FRAMES
+    // ======================================
+
+    if (this.superOndaAtiva) {
+
+      // Interromper se o herói morrer.
+      if (this.morrendo) {
+
+        this.superOndaAtiva = false;
+
+      } else {
+
+        this.mudarEstado("super_onda_eletrica");
+
+        // =====================================
+        // SUPER ONDA ELÉTRICA
+        // FINALIZAR ANIMAÇÃO DO HERÓI NO FRAME 14
+        // =====================================
+
+        // =====================================
+        // SINCRONIZAÇÃO DA SUPER ONDA ELÉTRICA
+        // =====================================
+
+        // Usar o mesmo tempo do sistema
+        // responsável pelo projétil.
+
+        if (
+            window.SuperOndaEletrica &&
+            SuperOndaEletrica.ativo
+        ) {
+
+            const tempoCarga = SuperOndaEletrica.tempo;
+
+            // Frames 1 a 14
+            this.frame = Math.min(
+                7,
+                Math.floor(tempoCarga / 100)
+            );
+
+            this.tempo = tempoCarga % 100;
+
+            console.log(
+                "⚡ SUPER ONDA — FRAME:",
+                this.frame + 1,
+                "TEMPO:",
+                tempoCarga
+            );
+
+        } else {
+
+            // Segurança caso o sistema da onda
+            // não esteja disponível.
+            this.avancarAnimacao(
+                deltaTime,
+                false
+            );
+        }
+
+        // O índice 13 corresponde ao frame 14.
+        // Os frames 15 e 16 pertencem ao projétil.
+        // =====================================
+        // FINALIZAR O CARREGAMENTO APÓS 1400 MS
+        // =====================================
+
+        if (
+            window.SuperOndaEletrica &&
+            SuperOndaEletrica.ativo &&
+            SuperOndaEletrica.tempo >= SuperOndaEletrica.cargaMs
+        ) {
+
+            this.superOndaAtiva = false;
+
+            // Voltar à animação normal do herói
+            this.mudarEstado("idle");
+
+            this.frame = 0;
+            this.tempo = 0;
+
+            console.log(
+                "⚡ HERÓI FINALIZOU O LANÇAMENTO!"
+            );
+        }
+
+        return;
+      }
+    }
+
+
 
     // ======================================
     // MORTE
@@ -937,6 +1075,16 @@ window.AnimacoesHeroi = {
     let alturaVisual = 110;
     let ajustePes = 14;
 
+    // =====================================
+    // SUPER ONDA ELÉTRICA — TAMANHO VISUAL
+    // =====================================
+
+    if (this.estado === "super_onda_eletrica") {
+        larguraVisual = 95;
+        alturaVisual = 95;
+        ajustePes = 14;
+    }
+
     if (this.estado === "north") {
 
       larguraVisual = 80;
@@ -955,6 +1103,88 @@ window.AnimacoesHeroi = {
       jogador.altura -
       alturaVisual +
       ajustePes;
+
+      // =====================================
+// POSICIONAMENTO DA SUPER ONDA ELÉTRICA
+// =====================================
+
+if (this.estado === "super_onda_eletrica") {
+    // =====================================
+    // SUPER ONDA ELÉTRICA
+    // FRAMES 15 E 16 SÃO PROJÉTEIS
+    // =====================================
+
+    // Os frames 1 a 14 continuam sendo
+    // desenhados junto ao herói.
+    //
+    // Os frames 15 e 16 serão desenhados
+    // exclusivamente pelo super_onda_eletrica.js.
+
+    if (this.frame >= 14) {
+        return false;
+    }
+  
+
+    // Posição do centro do herói
+    const centroHeroiX =
+        jogador.x - cameraX +
+        jogador.largura / 2;
+
+    // Manter os pés alinhados
+    const posY =
+        jogador.y - cameraY +
+        jogador.altura -
+        alturaVisual +
+        ajustePes;
+
+    // A imagem possui 640 px de largura.
+    // Os primeiros 140 px são reservados
+    // para o herói e os demais para o raio.
+    const larguraHeroiNaSprite = 140;
+
+    const posX =
+        centroHeroiX -
+        larguraVisual / 2;
+
+    ctx.save();
+
+    if (this.direcao === -1) {
+
+        ctx.translate(2 * centroHeroiX, 0);
+        ctx.scale(-1, 1);
+    }
+
+    
+    // =====================================
+    // SUPER ONDA ELÉTRICA
+    // RECORTE DO HERÓI — FRAMES 1 A 14
+    // =====================================
+
+    const larguraRecorte = 140;
+
+    
+    // SUPER ONDA ELÉTRICA
+    // Mostrar toda a largura da sprite
+
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.drawImage(
+        imagem,
+        0,
+        0,
+        imagem.naturalWidth,
+        imagem.naturalHeight,
+        posX,
+        posY,
+        imagem.naturalWidth * (95 / 176),
+        95
+    );
+
+
+    ctx.restore();
+
+    return true;
+}
 
     ctx.save();
 

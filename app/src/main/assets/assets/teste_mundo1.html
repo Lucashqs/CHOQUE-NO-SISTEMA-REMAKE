@@ -234,6 +234,25 @@
             background: rgba(107, 33, 168, 0.9);
             border-color: #c084fc;
         }
+        
+        /* SUPER ONDA ELÉTRICA */
+
+        #superAtaque {
+            background: rgba(0, 100, 180, 0.92);
+            border: 2px solid #38bdf8;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: clamp(9px, 1.2vw, 13px);
+            text-shadow: 0 0 5px #38bdf8;
+            box-shadow: 0 0 12px rgba(0, 200, 255, 0.5);
+            touch-action: none;
+        }
+
+        #superAtaque:active {
+            background: #0284c7;
+            box-shadow: 0 0 20px #38bdf8;
+        }
+
 
 
         
@@ -480,6 +499,194 @@
                 bottom: 4%;
             }
         }
+
+        
+          /* =====================================
+            MENSAGEM DE JOGO SALVO
+          ===================================== */
+
+          #mensagemJogoSalvo {
+              position: absolute;
+              top: 18%;
+              left: 50%;
+              transform: translateX(-50%);
+              z-index: 25;
+
+              padding: 10px 24px;
+              border: 2px solid #facc15;
+              border-radius: 12px;
+
+              background: rgba(5, 15, 35, 0.85);
+              color: #fde047;
+
+              font-size: clamp(14px, 3cqw, 30px);
+              font-weight: bold;
+              white-space: nowrap;
+              text-align: center;
+
+              text-shadow: 0 0 12px #facc15;
+              box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+
+              pointer-events: none;
+              opacity: 0;
+              visibility: hidden;
+          }
+
+          #mensagemJogoSalvo.visivel {
+              visibility: visible;
+              animation: piscarJogoSalvo 0.5s ease-in-out infinite;
+          }
+
+          @keyframes piscarJogoSalvo {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.2; }
+          }
+
+          /* =====================================
+            TELA DE VITÓRIA — MUNDO 1
+          ===================================== */
+
+          #telaFaseCompleta {
+              position: absolute;
+              inset: 0;
+              z-index: 50;
+
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+
+              gap: clamp(7px, 1.5cqw, 15px);
+              padding: 3%;
+
+              background:
+                  radial-gradient(
+                      ellipse at center,
+                      rgba(8, 49, 105, 0.96),
+                      rgba(2, 7, 23, 0.99)
+                  );
+
+              text-align: center;
+              overflow: hidden;
+          }
+
+          #telaFaseCompleta[hidden] {
+              display: none;
+          }
+
+          /* TÍTULO PRINCIPAL */
+
+          #telaFaseCompleta h1 {
+              margin: 0;
+
+              color: #facc15;
+              font-size: clamp(18px, 4.5cqw, 46px);
+
+              text-shadow:
+                  0 0 10px #facc15,
+                  0 0 25px #0284c7;
+
+              animation: brilhoVitoria 1.5s infinite alternate;
+          }
+
+          /* CHEFÃO DERROTADO */
+
+          #telaFaseCompleta h2 {
+              margin: 0;
+
+              color: #38bdf8;
+              font-size: clamp(12px, 2.6cqw, 26px);
+
+              text-shadow: 0 0 15px #0284c7;
+          }
+
+          /* MENSAGEM */
+
+          #telaFaseCompleta p {
+              margin: 0;
+
+              color: #e2e8f0;
+              font-size: clamp(10px, 1.8cqw, 18px);
+          }
+
+          /* BOTÕES */
+
+          #telaFaseCompleta button {
+              width: min(55%, 320px);
+              min-height: clamp(32px, 5cqw, 48px);
+
+              padding: 7px 12px;
+
+              border: 2px solid #38bdf8;
+              border-radius: 12px;
+
+              background: #123c72;
+              color: white;
+
+              font-size: clamp(11px, 2cqw, 19px);
+              font-weight: bold;
+
+              cursor: pointer;
+              touch-action: manipulation;
+
+              transition: 0.2s;
+          }
+
+          #telaFaseCompleta button:active {
+              transform: scale(0.96);
+          }
+
+          /* BOTÃO AVANÇAR */
+
+          #btnAvancarFase {
+              border-color: #4ade80 !important;
+              background: #15803d !important;
+          }
+
+          #btnAvancarFase:hover {
+              background: #16a34a !important;
+          }
+
+          /* BOTÃO VOLTAR AO MENU */
+
+          #btnMenuFaseCompleta:hover {
+              background: #1674bc;
+          }
+
+          /* AVISO DA FASE 2 */
+
+          #avisoFase2 {
+              max-width: 85%;
+
+              padding: 10px 15px;
+
+              color: #fde047 !important;
+              font-weight: bold;
+
+              border: 1px solid #facc15;
+              border-radius: 10px;
+
+              background: rgba(0, 0, 0, 0.65);
+
+              text-shadow: 0 0 10px #facc15;
+          }
+
+          #avisoFase2[hidden] {
+              display: none;
+          }
+
+          /* ANIMAÇÃO ELÉTRICA DO TÍTULO */
+
+          @keyframes brilhoVitoria {
+              from {
+                  filter: brightness(0.8);
+              }
+
+              to {
+                  filter: brightness(1.4);
+              }
+          }
+
     </style>
 </head>
 
@@ -500,6 +707,13 @@
         <button id="btnPause" type="button">
             ⏸ PAUSE
         </button>
+
+        
+        <!-- MENSAGEM DE CHECKPOINT SALVO -->
+        <div id="mensagemJogoSalvo">
+            ⚡ JOGO SALVO ⚡
+        </div>
+
 
 
         <!-- VIDA DO HERÓI -->
@@ -572,6 +786,34 @@
             </p>
         </div>
 
+        <!-- =====================================
+        MUNDO 1 — FASE COMPLETA
+        ===================================== -->
+
+        <div id="telaFaseCompleta" hidden>
+
+            <h1>⚡ FASE 1 COMPLETA! ⚡</h1>
+
+            <h2>RAIO DE FOGO DERROTADO!</h2>
+
+            <p>
+                Parabéns, herói! Você salvou a cidade!
+            </p>
+
+            <button id="btnAvancarFase" type="button">
+                AVANÇAR ➜
+            </button>
+
+            <button id="btnMenuFaseCompleta" type="button">
+                VOLTAR AO MENU
+            </button>
+
+            <p id="avisoFase2" hidden>
+                FASE 2 EM DESENVOLVIMENTO!
+                Aguarde... Novas aventuras estão chegando!
+            </p>
+
+        </div>
 
         <!-- GAME OVER -->
 
@@ -601,9 +843,12 @@
             <!-- CONTROLES DE COMBATE -->
 
             <div class="grupo">
-                <button id="pular">PULO</button>
-                <button id="ataque1">ATQ 1</button>
-                <button id="ataque2">ATQ 2</button>
+               
+              <button id="pular">PULO</button>
+              <button id="ataque1">ATQ 1</button>
+              <button id="ataque2">ATQ 2</button>
+              <button id="superAtaque">SUPER ⚡</button>
+
             </div>
 
         </div>
@@ -630,6 +875,7 @@
   <script src="js/chefao_raio_de_fogo.js"></script>
   <script src="js/cutscenes.js"></script>
   <script src="js/projeteis.js"></script>
+  <script src="js/super_onda_eletrica.js"></script>
   <!-- SISTEMA DE CHECKPOINTS -->
   <script src="js/salvamento.js"></script>
 
@@ -886,6 +1132,37 @@
 
     
     /* =====================================
+      AVISO VISUAL — JOGO SALVO
+    ===================================== */
+
+    let temporizadorJogoSalvo = null;
+
+    function mostrarMensagemJogoSalvo() {
+
+        const mensagem =
+            document.getElementById("mensagemJogoSalvo");
+
+        if (!mensagem) return;
+
+        // Reinicia o aviso caso outro checkpoint seja salvo
+        clearTimeout(temporizadorJogoSalvo);
+
+        mensagem.classList.remove("visivel");
+
+        // Reiniciar a animação de piscar
+        void mensagem.offsetWidth;
+
+        mensagem.classList.add("visivel");
+
+        // Esconder após 2,5 segundos
+        temporizadorJogoSalvo = setTimeout(() => {
+            mensagem.classList.remove("visivel");
+        }, 2500);
+    }
+
+
+    
+    /* =====================================
       CONTROLE DOS CHECKPOINTS
     ===================================== */
 
@@ -908,13 +1185,17 @@
 
       const salvou = Salvamento.salvar(dados);
 
+      
       if (salvou) {
-        ultimoCheckpoint = numero;
+          ultimoCheckpoint = numero;
 
-        console.log(
-          "CHECKPOINT " + numero + " SALVO!"
-        );
+          console.log(
+              "CHECKPOINT " + numero + " SALVO!"
+          );
+
+          mostrarMensagemJogoSalvo();
       }
+
     }
 
     
@@ -963,13 +1244,17 @@
       // Salvar os dados
       const salvou = Salvamento.salvar(dados);
 
+      
       if (salvou) {
-        checkpointEspecialRaioSalvo = true;
+          checkpointEspecialRaioSalvo = true;
 
-        console.log(
-          "💛 CHECKPOINT ESPECIAL DO RAIO DE FOGO SALVO!"
-        );
+          console.log(
+              "💛 CHECKPOINT ESPECIAL DO RAIO DE FOGO SALVO!"
+          );
+
+          mostrarMensagemJogoSalvo();
       }
+
     }
 
 
@@ -1006,6 +1291,11 @@
     // Inicializacao.
     AnimacoesHeroi.iniciar();
     Inimigos.iniciar();
+
+    // CARREGAR SPRITES DA SUPER ONDA ELÉTRICA
+    if (window.SuperOndaEletrica) {
+        SuperOndaEletrica.iniciarSprites();
+    }
 
     // ==========================================
     // NATAL 2026 — INICIALIZAR NEVE
@@ -1344,6 +1634,48 @@
 
         const id = botao.id;
 
+        
+        // SUPER ONDA ELÉTRICA — CELULAR
+
+        if (id === "superAtaque") {
+
+          botao.addEventListener(
+            "pointerdown",
+            e => {
+              e.preventDefault();
+
+              if (
+                vidaHeroi.valor <= 0 ||
+                gameOver ||
+                jogoPausado ||
+                (window.Cutscenes && Cutscenes.ativa)
+              ) {
+                return;
+              }
+
+              
+              // =====================================
+              // ATIVAR SUPER ONDA ELÉTRICA
+              // =====================================
+
+              if (
+                  window.SuperOndaEletrica &&
+                  SuperOndaEletrica.iniciar(
+                      Jogador,
+                      AnimacoesHeroi
+                  )
+              ) {
+                  // Iniciar a animação visual do herói
+                  AnimacoesHeroi.iniciarSuperOndaEletrica();
+              }
+
+            }
+          );
+
+          return;
+        }
+
+
         if (
           id === "ataque1" ||
           id === "ataque2"
@@ -1477,6 +1809,35 @@
             "attack_02"
           );
         }
+
+        
+        // SUPER ONDA ELÉTRICA — TECLA E
+
+        if (
+          !e.repeat &&
+          e.code === "KeyE" &&
+          !jogoPausado &&
+          !(window.Cutscenes && Cutscenes.ativa)
+        ) {
+
+         
+          // =====================================
+          // ATIVAR SUPER ONDA ELÉTRICA
+          // =====================================
+
+          if (
+              window.SuperOndaEletrica &&
+              SuperOndaEletrica.iniciar(
+                  Jogador,
+                  AnimacoesHeroi
+              )
+          ) {
+              // Iniciar a animação visual do herói
+              AnimacoesHeroi.iniciarSuperOndaEletrica();
+          }
+
+        }
+
       }
     );
 
@@ -1582,12 +1943,41 @@
 
 
     // Reiniciar partida.
-    botaoReiniciar.addEventListener(
-      "click",
-      () => {
-        window.location.reload();
-      }
-    );
+    
+    // ==========================================
+    // GAME OVER — CONTINUAR DO ÚLTIMO CHECKPOINT
+    // ==========================================
+
+    botaoReiniciar.addEventListener("click", () => {
+
+        // Verificar se existe um checkpoint salvo
+        const checkpoint = Salvamento.carregar();
+
+        if (checkpoint && Number.isFinite(checkpoint.checkpointX)) {
+
+            console.log(
+                "⚡ CONTINUANDO DO ÚLTIMO CHECKPOINT:",
+                checkpoint.checkpointX
+            );
+
+            // Recarregar a fase no modo continuar
+            window.location.href =
+                window.location.pathname + "?continuar=1";
+
+        } else {
+
+            console.log(
+                "Nenhum checkpoint encontrado. Reiniciando a fase."
+            );
+
+            // Sem checkpoint, começar uma nova partida
+            window.location.href =
+                window.location.pathname;
+
+        }
+
+    });
+
 
     function mostrarGameOver() {
       if (gameOver) return;
@@ -2098,54 +2488,91 @@
 
 
 
-      // Inicialmente, apenas a Avenida Central
-      let limiteRegiao = 1200;
+      
+      // =====================================
+      // CÂMERA DINÂMICA POR ÁREA — MUNDO 1
+      // =====================================
 
-      // Liberar Distrito Comercial
-      if (avenidaConcluida) {
-        limiteRegiao = 2400;
+      const larguraArea = 1200;
+      const larguraTela = canvas.width;
+      
+      // =====================================
+      // EXPLORAÇÃO LIVRE — MUNDO 1
+      // =====================================
+
+      const todasAreasConcluidas =
+        window.Inimigos &&
+        typeof Inimigos.todosSaqueadoresDerrotados === "function" &&
+        Inimigos.todosSaqueadoresDerrotados();
+
+      // Após derrotar todos os saqueadores,
+      // a câmera poderá percorrer o mundo inteiro.
+
+
+      let limiteMinimoCamera = 0;
+      let limiteMaximoCamera =
+        Mundo1.largura - larguraTela;
+
+      if (!todasAreasConcluidas) {
+
+        // Identificar a área atual do herói
+        const areaAtual = Math.max(
+          0,
+          Math.min(
+            3,
+            Math.floor(
+              (Jogador.x + Jogador.largura / 2) /
+              larguraArea
+            )
+          )
+        );
+
+        const inicioArea = areaAtual * larguraArea;
+        const fimArea = Math.min(
+          Mundo1.largura,
+          inicioArea + larguraArea
+        );
+
+        limiteMinimoCamera = inicioArea;
+
+        limiteMaximoCamera = Math.max(
+          inicioArea,
+          fimArea - larguraTela
+        );
       }
 
-      // Liberar Bairro Industrial
-      if (avenidaConcluida && distritoConcluido) {
-        limiteRegiao = 3600;
-      }
-
-      // Liberar Usina Elétrica
-      if (
-        avenidaConcluida &&
-        distritoConcluido &&
-        industrialConcluido
-      ) {
-        limiteRegiao = Mundo1.largura;
-      }
-
-      // Limite máximo da câmera
-      const limiteCameraX = Math.max(
-        0,
-        limiteRegiao - canvas.width
-      );              
-
-      // Impedir que a camera avance para
-      // o Distrito Comercial antes da hora.
+      // Centralizar a câmera no herói,
+      // respeitando os limites da área.
       const alvoXLimitado = Math.max(
-        0,
-        Math.min(limiteCameraX, alvoX)
+        limiteMinimoCamera,
+        Math.min(limiteMaximoCamera, alvoX)
       );
 
-      // Movimento suave da camera.
+      // Movimento suave da câmera
       cameraX +=
         (alvoXLimitado - cameraX) * 0.08;
 
+      
+      // =====================================
+      // TRANSIÇÃO SUAVE ENTRE ÁREAS
+      // =====================================
+
+      // Durante a transição, permitir que a
+      // câmera alcance gradualmente a nova área.
+      // Os limites físicos do mundo continuam ativos.
+      cameraX = Math.max(
+        0,
+        Math.min(
+          Mundo1.largura - canvas.width,
+          cameraX
+        )
+      );
+
+
+      // Acompanhamento vertical
       cameraY +=
         (alvoY - cameraY) * 0.08;
 
-      // Garantir que a camera respeite
-      // os limites do cenario liberado.
-      cameraX = Math.max(
-        0,
-        Math.min(limiteCameraX, cameraX)
-      );
 
       // Limites verticais.
       cameraY = Math.max(
@@ -2155,6 +2582,21 @@
           cameraY
         )
       );
+
+      
+      // ==========================================
+      // TREMOR CINEMATOGRÁFICO — RAIO DE FOGO
+      // ==========================================
+
+      ctx.save();
+
+      const tremor = RaioDeFogo.obterDeslocamentoTremor();
+
+      ctx.translate(
+        tremor.x,
+        tremor.y
+      );
+
 
       // Cenario.
       Mundo1.desenhar(
@@ -2173,6 +2615,22 @@
 
       // Animacoes continuam mesmo
       // depois da morte do heroi.
+      
+
+      // =====================================
+      // SUPER ONDA ELÉTRICA
+      // ATUALIZAR MOVIMENTO E COLISÃO
+      // =====================================
+
+      if (window.SuperOndaEletrica) {
+
+          SuperOndaEletrica.atualizar(
+              dt,
+              Jogador
+          );
+
+      }
+
       AnimacoesHeroi.atualizar(
         Jogador,
         dt
@@ -2347,6 +2805,20 @@
         }
       }
 
+
+      // =====================================
+      // SUPER ONDA ELÉTRICA — ATUALIZAÇÃO
+      // =====================================
+
+      if (
+        !gameOver &&
+        !Cutscenes.ativa &&
+        vidaHeroi.valor > 0
+      ) {
+        
+      }
+
+
       // Detectar derrota.
       if (
         vidaHeroi.valor <= 0 &&
@@ -2413,6 +2885,21 @@
             cameraY
           );
 
+          // =====================================
+          // SUPER ONDA ELÉTRICA
+          // DESENHAR PROJÉTIL NO CENÁRIO
+          // =====================================
+
+          if (window.SuperOndaEletrica) {
+
+              SuperOndaEletrica.desenhar(
+                  ctx,
+                  cameraX,
+                  cameraY
+              );
+
+          }
+
         if (!desenhou) {
           Jogador.desenhar(
             ctx,
@@ -2440,6 +2927,9 @@
         cameraY
       );
 
+
+
+
       // Desenhar dialogo
       // ==========================================
       // NATAL 2026 — NEVE ANIMADA
@@ -2450,6 +2940,11 @@
 
       // Desenhar neve sobre o cenário e personagens
       NeveNatal.desenhar(ctx);
+
+      
+      // Restaurar o Canvas após o tremor
+      ctx.restore();
+
 
       // Desenhar diálogo por cima da neve
       Cutscenes.desenharDialogo(ctx);
@@ -2462,6 +2957,42 @@
     }
 
     atualizar();
+
+    /* =====================================
+     MUNDO 1 — BOTÕES DA TELA DE VITÓRIA
+    ===================================== */
+
+    const telaFaseCompleta =
+        document.getElementById("telaFaseCompleta");
+
+    const btnAvancarFase =
+        document.getElementById("btnAvancarFase");
+
+    const btnMenuFaseCompleta =
+        document.getElementById("btnMenuFaseCompleta");
+
+    const avisoFase2 =
+        document.getElementById("avisoFase2");
+
+    // BOTÃO AVANÇAR
+    btnAvancarFase.addEventListener("click", () => {
+
+        // Exibir aviso sem iniciar outra fase
+        avisoFase2.hidden = false;
+
+        console.log(
+            "FASE 2 EM DESENVOLVIMENTO"
+        );
+
+    });
+
+    // BOTÃO VOLTAR AO MENU
+    btnMenuFaseCompleta.addEventListener("click", () => {
+
+        window.location.href = "index.html";
+
+    });
+  
   </script>
 
 </body>
