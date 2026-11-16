@@ -2,6 +2,51 @@
 // CHOQUE NO SISTEMA 2.0
 // ==========================================================================================
 window.Cutscenes = {
+
+    // ==========================================
+    // TRANSIÇÃO MUNDO 1 → MUNDO 2
+    // O CHAMADO DAS SOMBRAS
+    // ==========================================
+
+    dialogosSombras: [
+        {
+            personagem: "ASSASSINO DAS SOMBRAS",
+            texto: "Então... você é aquele que derrotou o Raio de Fogo. Interessante..."
+        },
+        {
+            personagem: "HERÓI",
+            texto: "Quem é você? Como sabe o que aconteceu aqui?"
+        },
+        {
+            personagem: "ASSASSINO DAS SOMBRAS",
+            texto: "Nós observamos cada passo seu... Cada batalha... Cada vitória."
+        },
+        {
+            personagem: "HERÓI",
+            texto: "Nós? Quantos de vocês existem?"
+        },
+        {
+            personagem: "ASSASSINO DAS SOMBRAS",
+            texto: "Mais do que imagina. Nas profundezas desta cidade, algo espera por você."
+        },
+        {
+            personagem: "HERÓI",
+            texto: "Se existe alguém por trás disso, vou encontrá-lo!"
+        },
+        {
+            personagem: "ASSASSINO DAS SOMBRAS",
+            texto: "Você derrotou o fogo... Mas conseguirá enfrentar aquilo que nem a luz alcança?"
+        },
+        {
+            personagem: "HERÓI",
+            texto: "Não importa o que esteja escondido. Eu não vou recuar!"
+        },
+        {
+            personagem: "ASSASSINO DAS SOMBRAS",
+            texto: "Então prove seu valor... Se conseguir sobreviver a mim!"
+        }
+    ],
+
     //Estado inicial da história
     estado: "intro",
 
@@ -392,15 +437,19 @@ window.Cutscenes = {
             this.estado !== "dialogo_intro" &&
             this.estado !== "dialogo_saqueador" &&
             this.estado !== "dialogo_retorno_raio" &&
-            this.estado !== "dialogo_derrota_raio"
+            this.estado !== "dialogo_derrota_raio" &&
+            this.estado !== "dialogo_sombras"
         ) {
             return;
         }
 
         // Identificar qual diálogo está acontecendo
         
+        
         const falas =
-            this.estado === "dialogo_derrota_raio"
+            this.estado === "dialogo_sombras"
+                ? this.dialogosSombras
+                : this.estado === "dialogo_derrota_raio"
                 ? this.dialogosDerrotaRaio
                 : this.estado === "dialogo_retorno_raio"
                 ? this.dialogosRetornoRaio
@@ -414,6 +463,22 @@ window.Cutscenes = {
 
         // Verificar se todas as falas terminaram
         if (this.dialogoAtual >= falas.length) {
+
+            
+            if (this.estado === "dialogo_sombras") {
+                console.log("COMBATE ESPECIAL LIBERADO!");
+
+                this.estado = "combate_sombras";
+                this.finalizar();
+
+                window.dispatchEvent(
+                    new Event("iniciarCombateSombras")
+                );
+
+                return;
+            }
+
+
             
             if (this.estado === "dialogo_derrota_raio") {
 
@@ -512,21 +577,24 @@ window.Cutscenes = {
             this.estado !== "dialogo_intro" &&
             this.estado !== "dialogo_saqueador" &&
             this.estado !== "dialogo_retorno_raio" &&
-            this.estado !== "dialogo_derrota_raio"
+            this.estado !== "dialogo_derrota_raio" &&
+            this.estado !== "dialogo_sombras"
         ) {
             return;
         }
 
-        const falas =
-
-        this.estado === "dialogo_derrota_raio"
-            ? this.dialogosDerrotaRaio
-            : this.estado === "dialogo_retorno_raio"
-            ? this.dialogosRetornoRaio
-            : this.estado === "dialogo_saqueador"
-            ? this.dialogosSaqueador
-            : this.dialogosIntroducao;
         
+        const falas =
+            this.estado === "dialogo_sombras"
+                ? this.dialogosSombras
+                : this.estado === "dialogo_derrota_raio"
+                ? this.dialogosDerrotaRaio
+                : this.estado === "dialogo_retorno_raio"
+                ? this.dialogosRetornoRaio
+                : this.estado === "dialogo_saqueador"
+                ? this.dialogosSaqueador
+                : this.dialogosIntroducao;
+       
         const fala = falas[this.dialogoAtual];
 
         if (!fala) return;

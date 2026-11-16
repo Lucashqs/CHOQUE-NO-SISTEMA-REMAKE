@@ -339,6 +339,70 @@ window.Jogador = {
       }
     }
 
+
+    // =====================================
+    // COLISÃO COM ASSASSINO DAS SOMBRAS
+    // =====================================
+
+    const assassino = window.AssassinoEspecialMundo1;
+
+    if (
+      assassino &&
+      assassino.ativo &&
+      assassino.emCombate &&
+      !assassino.derrotado &&
+      assassino.estado !== "death"
+    ) {
+
+      const caixaAssassino = {
+        x: assassino.x,
+        y: assassino.y,
+        w: assassino.largura,
+        h: assassino.altura
+      };
+
+      const sobrepostoY =
+        this.y + this.altura > caixaAssassino.y &&
+        this.y < caixaAssassino.y + caixaAssassino.h;
+
+      const sobrepostoX =
+        this.x + this.largura > caixaAssassino.x &&
+        this.x < caixaAssassino.x + caixaAssassino.w;
+
+      if (sobrepostoX && sobrepostoY) {
+
+        if (
+          this.vx > 0 &&
+          xAnterior + this.largura <= caixaAssassino.x
+        ) {
+          this.x = caixaAssassino.x - this.largura;
+
+        } else if (
+          this.vx < 0 &&
+          xAnterior >= caixaAssassino.x + caixaAssassino.w
+        ) {
+          this.x = caixaAssassino.x + caixaAssassino.w;
+
+        } else {
+
+          const centroHeroi =
+            this.x + this.largura / 2;
+
+          const centroAssassino =
+            caixaAssassino.x + caixaAssassino.w / 2;
+
+          if (centroHeroi <= centroAssassino) {
+            this.x = caixaAssassino.x - this.largura;
+          } else {
+            this.x = caixaAssassino.x + caixaAssassino.w;
+          }
+        }
+
+        this.vx = 0;
+      }
+    }
+
+
     // COLISÃO COM RAIO DE FOGO
     if (
       window.RaioDeFogo &&

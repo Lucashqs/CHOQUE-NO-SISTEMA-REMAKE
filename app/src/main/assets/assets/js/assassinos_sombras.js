@@ -215,6 +215,89 @@ window.AssassinosSombras = {
 
         }
 
+
+        // =====================================
+        // MUNDO 2 — RESTAURAR ASSASSINOS DERROTADOS
+        // =====================================
+
+        try {
+            const chave =
+                "choque_remake_mundo2_derrotados";
+
+            const dados = JSON.parse(
+                localStorage.getItem(chave) || "[]"
+            );
+
+            const idsSalvos = Array.isArray(dados)
+                ? dados
+                : [];
+
+            const idsDerrotados = new Set(
+                idsSalvos.filter(Number.isInteger)
+            );
+
+            for (const npc of this.lista) {
+
+                if (!idsDerrotados.has(npc.id)) {
+                    continue;
+                }
+
+                npc.vida = 0;
+                npc.vivo = false;
+                npc.derrotado = true;
+                npc.derrotaContabilizada = true;
+                npc.liberado = false;
+
+                npc.estado = "death";
+
+                this.totalDerrotados++;
+                this.derrotadosPorArea[npc.area]++;
+            }
+
+            console.log(
+                "MUNDO 2 — ASSASSINOS RESTAURADOS:",
+                this.totalDerrotados
+            );
+
+        } catch (erro) {
+            console.error(
+                "Erro ao restaurar assassinos:",
+                erro
+            );
+        }
+
+
+        // =====================================
+        // RESTAURAR CORAÇÕES PENDENTES
+        // =====================================
+
+        const coracoesColetados =
+            this.obterCoracoesSalvos();
+
+        for (let area = 0; area < 4; area++) {
+
+            if (coracoesColetados.includes(area)) {
+                this.coracoesGerados[area] = true;
+                continue;
+            }
+
+            if (this.derrotadosPorArea[area] >= 2) {
+
+                // Recuperar a posição de um inimigo
+                // anteriormente derrotado nessa área.
+                const npc = this.lista.find(
+                    inimigo =>
+                        inimigo.area === area &&
+                        inimigo.derrotaContabilizada
+                );
+
+                if (npc) {
+                    this.criarCoracao(npc, area);
+                }
+            }
+        }
+
+
         this.atualizarLiberacao({
             x: 0,
             largura: 35
@@ -329,15 +412,23 @@ window.AssassinosSombras = {
             this.quantidadeInicial + derrotados
         );
 
-        for (let i = 0; i < quantidade; i++) {
+        
+        // Liberar somente assassinos ainda vivos,
+        // respeitando o progresso da área.
 
-            if (!grupo[i].derrotaContabilizada) {
+        const vivos = grupo.filter(
+            npc => !npc.derrotaContabilizada
+        );
 
-                grupo[i].liberado = true;
+        const quantidadeVivos = Math.min(
+            vivos.length,
+            this.quantidadeInicial
+        );
 
-            }
-
+        for (let i = 0; i < quantidadeVivos; i++) {
+            vivos[i].liberado = true;
         }
+
 
     },
 
@@ -447,26 +538,80 @@ window.AssassinosSombras = {
 
 
     // =====================================
+    // MUNDO 2 — SALVAMENTO DOS CORAÇÕES
+    // =====================================
+
+    chaveCoracoes:
+        "choque_remake_mundo2_coracoes",
+
+    obterCoracoesSalvos() {
+        try {
+            const dados = JSON.parse(
+                localStorage.getItem(this.chaveCoracoes) || "[]"
+            );
+
+            return Array.isArray(dados)
+                ? dados.filter(
+                    area => Number.isInteger(area) &&
+                            area >= 0 && area < 4
+                )
+                : [];
+        } catch (erro) {
+            console.error(
+                "Erro ao carregar corações:",
+                erro
+            );
+            return [];
+        }
+    },
+
+    salvarCoracaoColetado(area) {
+        const areas = this.obterCoracoesSalvos();
+
+        if (!areas.includes(area)) {
+            areas.push(area);
+
+            localStorage.setItem(
+                this.chaveCoracoes,
+                JSON.stringify(areas)
+            );
+        }
+    },
+
+
+    // =====================================
     // CRIAR CORAÇÃO DE VIDA
     // =====================================
 
+    
     criarCoracao(npc, area) {
 
+        // Não criar novamente um coração coletado
+        if (this.obterCoracoesSalvos().includes(area)) {
+            this.coracoesGerados[area] = true;
+            return;
+        }
+
+        // Evitar corações duplicados
+        if (this.coracoes.some(
+            coracao => coracao.area === area
+        )) {
+            return;
+        }
+
+        this.coracoesGerados[area] = true;
+
         this.coracoes.push({
-
             x: npc.x + 3,
-            y: npc.y + 0,
-
+            y: npc.y,
             largura: 28,
             altura: 28,
-
             cura: 25,
             area: area,
             coletado: false
-
         });
-
     },
+
 
     // =====================================
     // ATUALIZAR INTELIGÊNCIA ARTIFICIAL
@@ -505,6 +650,45 @@ window.AssassinosSombras = {
                     this.totalDerrotados++;
 
                     this.derrotadosPorArea[npc.area]++;
+
+                    
+                    // =====================================
+                    // SALVAR ASSASSINO DERROTADO — MUNDO 2
+                    // =====================================
+
+                    try {
+                        const chave =
+                            "choque_remake_mundo2_derrotados";
+
+                        const salvos = JSON.parse(
+                            localStorage.getItem(chave) || "[]"
+                        );
+
+                        const ids = Array.isArray(salvos)
+                            ? salvos
+                            : [];
+
+                        if (!ids.includes(npc.id)) {
+                            ids.push(npc.id);
+
+                            localStorage.setItem(
+                                chave,
+                                JSON.stringify(ids)
+                            );
+                        }
+
+                        console.log(
+                            "ASSASSINO SALVO — ID:",
+                            npc.id
+                        );
+
+                    } catch (erro) {
+                        console.error(
+                            "Erro ao salvar assassino:",
+                            erro
+                        );
+                    }
+
 
                     if (
                         this.derrotadosPorArea[npc.area] === 2 &&
@@ -1191,6 +1375,18 @@ window.AssassinosSombras = {
             );
 
             coracao.coletado = true;
+
+
+            // Persistir a coleta no Mundo 2
+            this.salvarCoracaoColetado(
+                coracao.area
+            );
+
+            console.log(
+                "CORAÇÃO COLETADO E SALVO — ÁREA",
+                coracao.area + 1
+            );
+
 
         }
 

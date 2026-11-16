@@ -328,6 +328,8 @@ button {
 
 <script src="js/assassinos_sombras.js"></script>
 
+<script src="js/senhor_das_sombras.js"></script>
+
 <script>
 
 "use strict";
@@ -751,13 +753,41 @@ function quadro(agora) {
 
     // LIMITES DO MUNDO
 
-    heroi.x = Math.max(
+    
+    // =====================================
+    // MUNDO 2 — LIMITES PROGRESSIVOS
+    // =====================================
+
+    // Identificar a área atual do herói
+    const indiceArea = Math.max(
         0,
+        Math.min(3, Math.floor(heroi.x / 1200))
+    );
+
+    // Verificar quais áreas já foram concluídas
+    let ultimaAreaLiberada = 0;
+
+    for (let i = 0; i < 3; i++) {
+        if (AssassinosSombras.areaConcluida(i)) {
+            ultimaAreaLiberada = i + 1;
+        } else {
+            break;
+        }
+    }
+
+    // Impedir entrada em áreas ainda bloqueadas
+    const limiteDireito =
         Math.min(
             Mundo2.largura - heroi.largura,
-            heroi.x
-        )
+            (ultimaAreaLiberada + 1) * 1200 -
+                heroi.largura
+        );
+
+    heroi.x = Math.max(
+        0,
+        Math.min(heroi.x, limiteDireito)
     );
+
 
     // =====================================
     // PULO DUPLO
@@ -857,7 +887,15 @@ function quadro(agora) {
 
     // Verificar se o soco atingiu um assassino
     if (hitboxSoco) {
+
+        // Dano aos Assassinos das Sombras
         AssassinosSombras.receberAtaque(
+            hitboxSoco,
+            hitboxSoco.idGolpe
+        );
+
+        // Dano ao Senhor das Sombras
+        SenhorDasSombras.receberAtaque(
             hitboxSoco,
             hitboxSoco.idGolpe
         );
@@ -877,6 +915,20 @@ function quadro(agora) {
         heroi,
         vidaHeroi
     );
+
+    // =====================================
+    // MUNDO 2 — ATUALIZAR SENHOR DAS SOMBRAS
+    // =====================================
+
+    if (!gameOver && vidaHeroi.valor > 0) {
+
+        SenhorDasSombras.atualizar(
+            dt,
+            heroi,
+            vidaHeroi
+        );
+
+    }
 
     // =====================================
     // MUNDO 2 — DETECTAR MORTE DO HERÓI
@@ -903,20 +955,36 @@ function quadro(agora) {
 
     // Atualizar a barra após receber dano
     atualizarHUDVida();
-
+    
     // =====================================
-    // CÂMERA HORIZONTAL
+    // MUNDO 2 — CÂMERA LIMITADA POR ÁREA
     // =====================================
 
+    // Identificar a área em que o herói está
+    const areaCamera = Mundo2.obterArea(
+        heroi.x + heroi.largura / 2
+    );
+
+    // Limites horizontais da área atual
+    const inicioCamera = areaCamera.inicio;
+    const fimCamera = areaCamera.fim;
+
+    // Posição desejada da câmera
+    const cameraDesejada =
+        heroi.x - canvas.width * 0.35;
+
+    // Limitar a câmera dentro da área
     const cameraX = Math.max(
-        0,
+        inicioCamera,
         Math.min(
-            Mundo2.largura - canvas.width,
-            heroi.x - canvas.width * 0.35
+            fimCamera - canvas.width,
+            cameraDesejada
         )
     );
 
+    // Manter a altura original da câmera
     const cameraY = 480;
+
 
     // =====================================
     // DESENHAR MUNDO 2
@@ -945,6 +1013,16 @@ function quadro(agora) {
         // =====================================
 
         AssassinosSombras.desenhar(ctx, cameraX, cameraY);
+
+        // =====================================
+        // MUNDO 2 — DESENHAR SENHOR DAS SOMBRAS
+        // =====================================
+
+        SenhorDasSombras.desenhar(
+            ctx,
+            cameraX,
+            cameraY
+        );
 
         // =====================================
         // MUNDO 2 — DESENHAR CORAÇÕES
@@ -1036,6 +1114,45 @@ document
 
 requestAnimationFrame(quadro);
 
+</script>
+    
+<!-- ENTRADA CINEMATOGRÁFICA DO MUNDO 2 -->
+
+<div id="entradaMundo2"></div>
+
+<style>
+    #entradaMundo2 {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        z-index: 9999;
+        transition: opacity 2s ease-in-out;
+    }
+</style>
+
+<script>
+    window.addEventListener("load", () => {
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+
+                document.getElementById(
+                    "entradaMundo2"
+                ).style.opacity = "0";
+
+            });
+        });
+
+        setTimeout(() => {
+
+            document.getElementById(
+                "entradaMundo2"
+            )?.remove();
+
+        }, 2300);
+    });
 </script>
 
 </body>

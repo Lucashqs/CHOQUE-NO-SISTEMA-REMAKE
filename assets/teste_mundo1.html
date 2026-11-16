@@ -1876,7 +1876,8 @@
             Cutscenes.estado === "dialogo_intro" ||
             Cutscenes.estado === "dialogo_saqueador" ||
             Cutscenes.estado === "dialogo_retorno_raio" ||
-            Cutscenes.estado === "dialogo_derrota_raio"
+            Cutscenes.estado === "dialogo_derrota_raio" ||
+            Cutscenes.estado === "dialogo_sombras"
         ) {
             console.log(
                 "Avançando diálogo:",
@@ -2287,6 +2288,51 @@
       ctx.restore();
     }
 
+    const assassinoEspecial = {
+        ativo: false,
+        x: 0,
+        y: 890,
+        largura: 55,
+        altura: 110,
+        direcao: -1,
+
+        vida: 100,
+        vidaMaxima: 100,
+        dano: 10,
+
+        estado: "idle",
+        frame: 0,
+        tempoAnimacao: 0,
+
+        // Controle do combate
+        emCombate: false,
+        derrotado: false,
+        acertouNesteAtaque: false,
+        ultimoAtaqueRecebido: null,
+        tempoRecarga: 0,
+
+        // Configuração da IA
+        velocidade: 1.65,
+        alcanceAtaque: 48,
+        recargaAtaque: 1200,
+
+        sprites: [],
+
+        animacoes: {
+            idle: [],
+            run: [],
+            attack: [],
+            damage: [],
+            death: []
+        }
+    };
+
+
+    // Permitir que jogador.js reconheça
+    // o assassino especial do Mundo 1
+    window.AssassinoEspecialMundo1 = assassinoEspecial;
+
+
     function atualizar() {
 
 
@@ -2318,6 +2364,8 @@
       );
 
       ultimoFrame = agora;
+
+      atualizarAssassinoEspecial(dt);
 
       if (
         Cutscenes.ativa && Cutscenes.estado === "intro"
@@ -2513,7 +2561,27 @@
       let limiteMaximoCamera =
         Mundo1.largura - larguraTela;
 
-      if (!todasAreasConcluidas) {
+      
+      // =====================================
+      // TRAVAR CÂMERA DURANTE OS COMBATES
+      // =====================================
+
+      const batalhaRaioAtiva =
+          window.RaioDeFogo &&
+          RaioDeFogo.ativo &&
+          !RaioDeFogo.derrotado;
+
+      const batalhaAssassinoAtiva =
+          assassinoEspecial.ativo &&
+          assassinoEspecial.emCombate &&
+          !assassinoEspecial.derrotado;
+
+      if (
+          !todasAreasConcluidas ||
+          batalhaRaioAtiva ||
+          batalhaAssassinoAtiva
+      ) {
+
 
         // Identificar a área atual do herói
         const areaAtual = Math.max(
@@ -2729,6 +2797,12 @@
             AnimacoesHeroi.idGolpe
           );
 
+          // SOCO CONTRA O ASSASSINO ESPECIAL
+          receberAtaqueAssassinoEspecial(
+              hitboxAtaque,
+              AnimacoesHeroi.idGolpe
+          );
+
           
           // ==========================================
           // SOCO ELÉTRICO CONTRA O RAIO DE FOGO
@@ -2928,7 +3002,9 @@
       );
 
 
-
+      // ASSASSINO DAS SOMBRAS — MUNDO 1
+      desenharAssassinoEspecial();
+      desenharVidaAssassinoEspecial();
 
       // Desenhar dialogo
       // ==========================================
@@ -2962,6 +3038,452 @@
      MUNDO 1 — BOTÕES DA TELA DE VITÓRIA
     ===================================== */
 
+
+    // ==========================================
+    // ASSASSINO ESPECIAL — TRANSIÇÃO MUNDO 2
+    // ==========================================
+
+    
+    
+
+
+    for (let i = 0; i < 8; i++) {
+        const imagem = new Image();
+
+        imagem.src =
+            "sprites/inimigos/assassino_das_sombras/" +
+            "animations/Fight_Stance_Idle/east/frame_" +
+            String(i).padStart(3, "0") + ".png";
+
+        imagem.onerror = () => {
+            console.error("Sprite não encontrada:", imagem.src);
+        };
+
+        assassinoEspecial.sprites.push(imagem);
+    }
+
+
+    const configuracaoAssassinoEspecial = {
+        idle: ["Fight_Stance_Idle", 8],
+        run: ["Running", 4],
+        attack: ["Cross_Punch", 6],
+        damage: ["Taking_Punch", 6],
+        death: ["Falling_Back_Death", 7]
+    };
+
+    for (const [estado, configuracao] of
+        Object.entries(configuracaoAssassinoEspecial)) {
+
+        const [pasta, total] = configuracao;
+
+        for (let i = 0; i < total; i++) {
+            const imagem = new Image();
+
+            imagem.src =
+                "sprites/inimigos/assassino_das_sombras/" +
+                "animations/" + pasta +
+                "/east/frame_" +
+                String(i).padStart(3, "0") +
+                ".png";
+
+            imagem.onerror = () => {
+                console.error(
+                    "Erro na animação do assassino:",
+                    imagem.src
+                );
+            };
+
+            assassinoEspecial.animacoes[estado].push(imagem);
+        }
+    }
+
+
+    function mudarEstadoAssassinoEspecial(novoEstado) {
+        const npc = assassinoEspecial;
+
+        if (npc.estado === novoEstado) return;
+
+        npc.estado = novoEstado;
+        npc.frame = 0;
+        npc.tempoAnimacao = 0;
+
+        if (novoEstado === "attack") {
+            npc.acertouNesteAtaque = false;
+        }
+    }
+
+
+    window.addEventListener(
+        "iniciarCombateSombras",
+        () => {
+            const npc = assassinoEspecial;
+
+            npc.emCombate = true;
+            npc.derrotado = false;
+            npc.vida = npc.vidaMaxima;
+            npc.tempoRecarga = 0;
+            npc.ultimoAtaqueRecebido = null;
+
+            mudarEstadoAssassinoEspecial("idle");
+
+            console.log(
+                "BATALHA CONTRA O ASSASSINO DAS SOMBRAS!"
+            );
+        }
+    );
+
+
+
+
+    
+    function desenharAssassinoEspecial() {
+        if (!assassinoEspecial.ativo) return;
+
+        const npc = assassinoEspecial;
+        const lista = npc.animacoes[npc.estado];
+        const imagem = lista?.[npc.frame];
+
+        if (
+            !imagem ||
+            !imagem.complete ||
+            imagem.naturalWidth === 0
+        ) return;
+
+        // TAMANHO VISUAL DA SPRITE
+        const tamanho = 110;
+
+        // AJUSTE VISUAL DOS PÉS
+        // Valor positivo desce a sprite
+        const ajustePes = 16;
+
+        const x = npc.x - cameraX;
+
+        const y =
+            npc.y +
+            npc.altura -
+            tamanho -
+            cameraY +
+            ajustePes;
+
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+
+        if (npc.direcao === -1) {
+            ctx.translate(x + tamanho / 2, 0);
+            ctx.scale(-1, 1);
+
+            ctx.drawImage(
+                imagem,
+                -tamanho / 2,
+                y,
+                tamanho,
+                tamanho
+            );
+        } else {
+            ctx.drawImage(
+                imagem,
+                x,
+                y,
+                tamanho,
+                tamanho
+            );
+        }
+
+        ctx.restore();
+    }
+
+
+
+    
+    function verificarSocoAssassinoEspecial() {
+        const npc = assassinoEspecial;
+
+        if (
+            !npc.ativo ||
+            !npc.emCombate ||
+            npc.derrotado ||
+            npc.estado !== "attack" ||
+            npc.acertouNesteAtaque ||
+            npc.frame < 2 ||
+            npc.frame > 3
+        ) return;
+
+        // Caixas físicas dos personagens
+        const corpoHeroi = Jogador.obterCaixaColisao();
+
+        const corpoAssassino = {
+            x: npc.x,
+            y: npc.y,
+            w: npc.largura,
+            h: npc.altura
+        };
+
+        // Distância horizontal entre os corpos
+        const distanciaX = Math.max(
+            0,
+            corpoHeroi.x -
+                (corpoAssassino.x + corpoAssassino.w),
+            corpoAssassino.x -
+                (corpoHeroi.x + corpoHeroi.w)
+        );
+
+        // Distância vertical entre os corpos
+        const distanciaY = Math.max(
+            0,
+            corpoHeroi.y -
+                (corpoAssassino.y + corpoAssassino.h),
+            corpoAssassino.y -
+                (corpoHeroi.y + corpoHeroi.h)
+        );
+
+        // Soco curto: no máximo 8 pixels de separação
+        if (distanciaX > 8 || distanciaY > 8) {
+            return;
+        }
+
+        // Verificar se o herói está à frente do assassino
+        const centroHeroi =
+            corpoHeroi.x + corpoHeroi.w / 2;
+
+        const centroAssassino =
+            corpoAssassino.x + corpoAssassino.w / 2;
+
+        if (
+            npc.direcao === 1 &&
+            centroHeroi < centroAssassino
+        ) return;
+
+        if (
+            npc.direcao === -1 &&
+            centroHeroi > centroAssassino
+        ) return;
+
+        // Respeitar invulnerabilidade
+        if (
+            vidaHeroi.valor <= 0 ||
+            vidaHeroi.tempoDano > 0
+        ) return;
+
+        npc.acertouNesteAtaque = true;
+
+        vidaHeroi.valor = Math.max(
+            0,
+            vidaHeroi.valor - npc.dano
+        );
+
+        vidaHeroi.tempoDano = 1000;
+
+        console.log(
+            "SOCO REAL DO ASSASSINO!",
+            "Distância:", distanciaX.toFixed(1),
+            "Dano:", npc.dano,
+            "Vida:", vidaHeroi.valor
+        );
+
+        if (
+            window.AnimacoesHeroi &&
+            typeof AnimacoesHeroi.iniciarDano === "function"
+        ) {
+            AnimacoesHeroi.iniciarDano();
+        }
+    }
+
+
+
+    
+    function atualizarAssassinoEspecial(dt) {
+        const npc = assassinoEspecial;
+
+        if (!npc.ativo || npc.derrotado) return;
+
+        const velocidades = {
+            idle: 130,
+            run: 110,
+            attack: 150,
+            damage: 100,
+            death: 120
+        };
+
+        const frames = npc.animacoes[npc.estado];
+
+        if (!frames || frames.length === 0) return;
+
+        // Atualizar animação
+        npc.tempoAnimacao += dt;
+
+        if (npc.tempoAnimacao >= velocidades[npc.estado]) {
+            npc.tempoAnimacao = 0;
+            npc.frame++;
+
+            if (npc.frame >= frames.length) {
+
+                if (npc.estado === "death") {
+                    npc.frame = frames.length - 1;
+                    npc.derrotado = true;
+                    npc.emCombate = false;
+
+                    
+                  console.log("ASSASSINO DAS SOMBRAS DERROTADO!");
+
+                  // Iniciar a transição apenas após concluir
+                  // todos os frames da animação de morte.
+                  iniciarTransicaoMundo2();
+
+                  return;
+
+                }
+
+                if (npc.estado === "attack") {
+                    npc.tempoRecarga = npc.recargaAtaque;
+                    mudarEstadoAssassinoEspecial("idle");
+                } else if (npc.estado === "damage") {
+                    mudarEstadoAssassinoEspecial("idle");
+                } else {
+                    npc.frame = 0;
+                }
+            }
+        }
+
+        if (!npc.emCombate || npc.estado === "death") return;
+
+        npc.tempoRecarga = Math.max(0, npc.tempoRecarga - dt);
+
+        if (npc.estado === "damage") return;
+
+        // Distância entre assassino e herói
+        const distancia =
+            (Jogador.x + Jogador.largura / 2) -
+            (npc.x + npc.largura / 2);
+
+        const distanciaAbsoluta = Math.abs(distancia);
+
+        npc.direcao = distancia >= 0 ? 1 : -1;
+
+        // Executar soco
+
+        // ==========================================
+        // ATAQUE DO ASSASSINO — HITBOX REAL
+        // ==========================================
+
+        if (npc.estado === "attack") {
+
+            verificarSocoAssassinoEspecial();
+
+            return;
+        }
+
+
+        // Perseguir o herói
+        if (distanciaAbsoluta > npc.alcanceAtaque) {
+
+            npc.x +=
+                Math.sign(distancia) *
+                npc.velocidade *
+                (dt / 16.67);
+
+            // Manter a luta na Área 4
+            npc.x = Math.max(
+                3600,
+                Math.min(4800 - npc.largura, npc.x)
+            );
+
+            mudarEstadoAssassinoEspecial("run");
+
+        } else if (npc.tempoRecarga <= 0) {
+
+            mudarEstadoAssassinoEspecial("attack");
+
+        } else {
+
+            mudarEstadoAssassinoEspecial("idle");
+        }
+    }
+
+
+    function receberAtaqueAssassinoEspecial(hitbox, idGolpe) {
+        const npc = assassinoEspecial;
+
+        if (
+            !npc.ativo ||
+            !npc.emCombate ||
+            npc.derrotado ||
+            npc.estado === "death" ||
+            !hitbox
+        ) return;
+
+        const larguraGolpe = hitbox.w ?? hitbox.largura ?? 0;
+        const alturaGolpe = hitbox.h ?? hitbox.altura ?? 0;
+
+        const acertou =
+            hitbox.x < npc.x + npc.largura &&
+            hitbox.x + larguraGolpe > npc.x &&
+            hitbox.y < npc.y + npc.altura &&
+            hitbox.y + alturaGolpe > npc.y;
+
+        if (!acertou) return;
+
+        if (npc.ultimoAtaqueRecebido === idGolpe) return;
+
+        npc.ultimoAtaqueRecebido = idGolpe;
+
+        npc.vida = Math.max(0, npc.vida - 20);
+
+        console.log(
+            "ASSASSINO RECEBEU DANO!",
+            "Vida:", npc.vida
+        );
+
+        if (npc.vida <= 0) {
+            npc.emCombate = false;
+            mudarEstadoAssassinoEspecial("death");
+        } else {
+            mudarEstadoAssassinoEspecial("damage");
+        }
+    }
+
+    // Permitir dano por bolas elétricas
+    window.receberAtaqueAssassinoEspecial =
+        receberAtaqueAssassinoEspecial;
+
+
+    function desenharVidaAssassinoEspecial() {
+        const npc = assassinoEspecial;
+
+        if (!npc.ativo || !npc.emCombate) return;
+
+        const larguraBarra = 200;
+        const x = (ctx.canvas.width - larguraBarra) / 2;
+
+        ctx.save();
+
+        ctx.textAlign = "center";
+        ctx.font = "bold 14px Arial";
+        ctx.fillStyle = "#ffffff";
+
+        ctx.fillText(
+            "ASSASSINO DAS SOMBRAS",
+            ctx.canvas.width / 2,
+            28
+        );
+
+        ctx.fillStyle = "#35134b";
+        ctx.fillRect(x, 36, larguraBarra, 14);
+
+        ctx.fillStyle = "#a855f7";
+        ctx.fillRect(
+            x,
+            36,
+            larguraBarra * (npc.vida / npc.vidaMaxima),
+            14
+        );
+
+        ctx.restore();
+    }
+
+
+
+
+
     const telaFaseCompleta =
         document.getElementById("telaFaseCompleta");
 
@@ -2975,16 +3497,41 @@
         document.getElementById("avisoFase2");
 
     // BOTÃO AVANÇAR
+    
     btnAvancarFase.addEventListener("click", () => {
 
-        // Exibir aviso sem iniciar outra fase
-        avisoFase2.hidden = false;
+        // Esconder tela de vitória
+        telaFaseCompleta.hidden = true;
+        avisoFase2.hidden = true;
+
+        // Posicionar o assassino próximo do herói
+        const posicaoDireita =
+            Jogador.x + Jogador.largura + 150;
+
+        const posicaoEsquerda =
+            Jogador.x - 180;
+
+        assassinoEspecial.x =
+            posicaoDireita <= 4660
+                ? posicaoDireita
+                : Math.max(3650, posicaoEsquerda);
+
+        assassinoEspecial.y = 890;
+        assassinoEspecial.direcao =
+            assassinoEspecial.x > Jogador.x ? -1 : 1;
+
+        assassinoEspecial.frame = 0;
+        assassinoEspecial.tempoAnimacao = 0;
+        assassinoEspecial.ativo = true;
+
+        // Iniciar diálogo misterioso
+        Cutscenes.iniciar("dialogo_sombras");
 
         console.log(
-            "FASE 2 EM DESENVOLVIMENTO"
+            "O CHAMADO DAS SOMBRAS — CUTSCENE INICIADA!"
         );
-
     });
+
 
     // BOTÃO VOLTAR AO MENU
     btnMenuFaseCompleta.addEventListener("click", () => {
@@ -2993,6 +3540,58 @@
 
     });
   
+  </script>
+
+  <!-- TRANSIÇÃO CINEMATOGRÁFICA PARA O MUNDO 2 -->
+
+  <div id="transicaoMundo2"></div>
+
+  <style>
+      #transicaoMundo2 {
+          position: fixed;
+          inset: 0;
+          background: #000;
+          opacity: 0;
+          pointer-events: none;
+          z-index: 9999;
+          transition: opacity 2s ease-in-out;
+      }
+
+      #transicaoMundo2.escurecer {
+          opacity: 1;
+      }
+  </style>
+
+  <script>
+      let transicaoMundo2Iniciada = false;
+
+      function iniciarTransicaoMundo2() {
+
+          if (transicaoMundo2Iniciada) return;
+
+          transicaoMundo2Iniciada = true;
+
+          console.log(
+              "TRANSIÇÃO CINEMATOGRÁFICA INICIADA!"
+          );
+
+          // Aguardar 5 segundos após a morte
+          setTimeout(() => {
+
+              document
+                  .getElementById("transicaoMundo2")
+                  .classList.add("escurecer");
+
+              // Aguardar o escurecimento completo
+              setTimeout(() => {
+
+                  window.location.href =
+                      "teste_mundo2.html";
+
+              }, 2000);
+
+          }, 5000);
+      }
   </script>
 
 </body>

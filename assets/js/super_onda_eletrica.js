@@ -482,6 +482,80 @@ window.SuperOndaEletrica = {
       }
     }
 
+
+    // ==========================================
+    // SUPER ONDA X ASSASSINO DAS SOMBRAS
+    // ==========================================
+
+    const assassino = window.AssassinoEspecialMundo1;
+
+    if (
+        assassino &&
+        assassino.ativo &&
+        assassino.emCombate &&
+        !assassino.derrotado &&
+        assassino.estado !== "death"
+    ) {
+        const colisaoAssassino =
+            caixa.x < assassino.x + assassino.largura &&
+            caixa.x + caixa.w > assassino.x &&
+            caixa.y < assassino.y + assassino.altura &&
+            caixa.y + caixa.h > assassino.y;
+
+        if (
+            colisaoAssassino &&
+            !this.atingidos.has(assassino)
+        ) {
+            this.atingidos.add(assassino);
+            this.arrastados.add(assassino);
+
+            assassino.vida = Math.max(
+                0,
+                assassino.vida - this.danoInicial
+            );
+
+            assassino.estado =
+                assassino.vida <= 0 ? "death" : "damage";
+
+            assassino.frame = 0;
+            assassino.tempoAnimacao = 0;
+
+            console.log(
+                "SUPER ONDA ATINGIU O ASSASSINO!",
+                "Vida restante:", assassino.vida
+            );
+        }
+
+        if (
+            this.arrastados.has(assassino) &&
+            assassino.vida > 0
+        ) {
+            const frenteArrasto =
+                this.direcao === 1
+                    ? caixa.x + caixa.w
+                    : caixa.x;
+
+            assassino.x =
+                frenteArrasto +
+                this.direcao * 20 -
+                assassino.largura / 2;
+
+            assassino.x = Math.max(
+                3600,
+                Math.min(
+                    assassino.x,
+                    4800 - assassino.largura
+                )
+            );
+
+            assassino.tempoRecarga = Math.max(
+                assassino.tempoRecarga,
+                300
+            );
+        }
+    }
+
+
     // COLISÃO COM O RAIO DE FOGO
 
     if (
@@ -584,15 +658,40 @@ window.SuperOndaEletrica = {
         npc.vida - this.danoFinal
       );
 
-      if (window.Inimigos) {
+      
+      // ======================================
+      // FINALIZAÇÃO DO ASSASSINO DAS SOMBRAS
+      // ======================================
 
-        Inimigos.mudarEstado(
-          npc,
-          npc.vida <= 0
-            ? "death"
-            : "damage"
-        );
+      if (npc === window.AssassinoEspecialMundo1) {
+
+          npc.estado =
+              npc.vida <= 0 ? "death" : "damage";
+
+          npc.frame = 0;
+          npc.tempoAnimacao = 0;
+
+          npc.tempoRecarga = Math.max(
+              npc.tempoRecarga || 0,
+              300
+          );
+
+          console.log(
+              "⚡ DANO FINAL NO ASSASSINO!",
+              "Vida restante:", npc.vida
+          );
+
+      } else if (window.Inimigos) {
+
+          // Manter o comportamento dos saqueadores
+          Inimigos.mudarEstado(
+              npc,
+              npc.vida <= 0
+                  ? "death"
+                  : "damage"
+          );
       }
+
     }
 
     this.arrastados.clear();

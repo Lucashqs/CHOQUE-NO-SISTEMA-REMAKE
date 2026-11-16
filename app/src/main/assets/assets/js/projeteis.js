@@ -163,6 +163,62 @@ window.Projeteis = {
         }
       }
 
+
+      // ==========================================
+      // COLISÃO COM ASSASSINO ESPECIAL
+      // TRANSIÇÃO MUNDO 1 → MUNDO 2
+      // ==========================================
+
+      const assassino = window.AssassinoEspecialMundo1;
+
+      if (
+          assassino &&
+          assassino.ativo &&
+          assassino.emCombate &&
+          !assassino.derrotado &&
+          assassino.estado !== "death"
+      ) {
+          // Hitbox física do assassino
+          const corpo = {
+              x: assassino.x,
+              y: assassino.y,
+              w: assassino.largura,
+              h: assassino.altura
+          };
+
+          const acertouAssassino =
+              hitbox.x < corpo.x + corpo.w &&
+              hitbox.x + hitbox.w > corpo.x &&
+              hitbox.y < corpo.y + corpo.h &&
+              hitbox.y + hitbox.h > corpo.y;
+
+          if (acertouAssassino) {
+
+              // Usar a mesma função de dano dos socos
+              if (
+                  typeof window.receberAtaqueAssassinoEspecial ===
+                  "function"
+              ) {
+                  window.receberAtaqueAssassinoEspecial(
+                      hitbox,
+                      bola.id
+                  );
+
+                  // Remover bola após o impacto
+                  bola.ativa = false;
+
+                  console.log(
+                      "BOLA ELÉTRICA ATINGIU O ASSASSINO!",
+                      "Dano:", this.dano,
+                      "Vida restante:", assassino.vida
+                  );
+
+                  continue;
+              }
+          }
+      }
+
+
       // ==================================
       // LIMITE DE ALCANCE
       // ==================================
